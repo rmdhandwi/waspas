@@ -57,9 +57,11 @@ const submit = () => {
             <div class="mt-4">
                 <InputLabel for="role"/>
                 <select class="w-full block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" v-model="form.role" id="role">
-                    <option value="super_admin" selected>super admin</option>
-                    <option value="admin">admin</option>
+                    <option value="" selected disabled>Pilih Role</option>
+                    <option value="super_admin" selected>Super Admin</option>
+                    <option value="admin">Admin</option>
                 </select>
+                <InputError class="mt-2" :message="form.errors.role" />
             </div>
 
             <div class="mt-4 block">

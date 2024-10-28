@@ -1,11 +1,16 @@
 <script setup>
+import { Head } from '@inertiajs/vue3'
+// import layout
+import Layout from '@/Layouts/SuperAdminLayout.vue'
 </script>
 
 <template>
     <Head title="Dashboard"/>
-    <div>
-        <h1 class="text-center text-3xl text-green-400">Dashboard Super Admin!</h1>
-    </div>
+    <Layout>
+        <template #pageContent>
+            
+        </template>
+    </Layout>
 </template>
 
 <style scoped>
