@@ -23,6 +23,7 @@ let props = defineProps({ usersData : Object, flash : Object})
 onMounted(() => 
 {
     dataUserFix.value = props.usersData.map((p, i) => ({ index : i+1, ...p}))
+    checkNotif()
 })
 
 let dataUserFix = ref([])
@@ -48,18 +49,19 @@ const toast = useToast()
 
 const checkNotif = () =>
 {
-    if(pageProps.flash.show)
+    if(props.flash.show)
     {
         setTimeout(() =>
         {
-            if(pageProps.flash.notif_status === 'success') {
-                toast.add({ severity: 'success', summary: 'Info', detail: notif_message, life: 4000 });
+            if(props.flash.notif_status === 'success') {
+                toast.add({ severity: 'success', summary: 'Info', detail: notif_message, life: 4000,  group : 'tc' });
             }
             else{
-                toast.add({ severity: 'error', summary: 'Info', detail: notif_message, life: 4000 });
+                toast.add({ severity: 'error', summary: 'Info', detail: notif_message, life: 4000,  group : 'tc' });
             }
         },1000)
     }
+    // toast.add({ severity: 'success', summary: 'Info', detail: 'test', life: 4000 , group : 'tc'});
 }
 
 const isLoading = ref(false)
@@ -89,6 +91,7 @@ const submitData = () =>
     <Layout>
         <template #pageContent>
             <div class="flex flex-col gap-[1rem]">
+                <Toast position="top-center" group="tc"/>
                 <div class="p-4 flex justify-between items-center">
                     <h1 class="text-lg">Daftar Pengguna</h1>
                     <Button severity="success" size="small" label="Tambah Pengguna" @click="showForm = true"/>
@@ -150,7 +153,7 @@ const submitData = () =>
                 <!-- modal tambah pengguna selesai -->
                 <Card>
                     <template #content>
-                        <DataTable :value="dataUserFix">
+                        <DataTable :value="dataUserFix" paginator :rows="10">
                             <Column sortable field="index" header="No"/>
                             <Column sortable field="username" header="Username"/>
                             <Column sortable field="nama" header="Nama"/>
