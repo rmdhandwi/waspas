@@ -10,6 +10,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura'
 import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -26,6 +27,7 @@ createInertiaApp({
             .use(ZiggyVue)
             .use(PrimeVue,{ theme : { preset : Aura, options : { darkModeSelector : false }} })
             .use(ToastService)
+            .use(ConfirmationService)
             .mount(el);
     },
     progress: {

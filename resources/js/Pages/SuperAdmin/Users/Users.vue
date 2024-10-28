@@ -17,6 +17,10 @@ import Password from 'primevue/password';
 import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast"
 
+import ConfirmDialog from 'primevue/confirmdialog';
+import { useConfirm } from "primevue/useconfirm";
+import NavLink from '@/Components/NavLink.vue';
+
 
 let props = defineProps({ usersData : Object, flash : Object})
 
@@ -46,33 +50,34 @@ const userForm = useForm({
 })
 
 const toast = useToast()
+const confirm = useConfirm()
 
 const checkNotif = () =>
 {
-    if(props.flash.show)
+    if(props.flash.notif_status)
     {
         setTimeout(() =>
         {
             if(props.flash.notif_status === 'success') {
-                toast.add({ severity: 'success', summary: 'Info', detail: notif_message, life: 4000,  group : 'tc' });
+                toast.add({ severity: 'success', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
             }
             else{
-                toast.add({ severity: 'error', summary: 'Info', detail: notif_message, life: 4000,  group : 'tc' });
+                toast.add({ severity: 'error', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
             }
         },1000)
     }
-    // toast.add({ severity: 'success', summary: 'Info', detail: 'test', life: 4000 , group : 'tc'});
 }
 
 const isLoading = ref(false)
 
 const refreshPage = () =>
 {
+    checkNotif()
     showForm.value = false
     isLoading.value = true
     router.visit(route('super_admin.pengguna'))
     userForm.reset()
-    checkNotif()
+    hapusUserData.reset()
     setTimeout(() => isLoading.value = false, 600)
 }
 
@@ -82,6 +87,39 @@ const submitData = () =>
     {
         onSuccess : () => refreshPage()  
     })
+}
+
+let hapusUserData = useForm({
+    id : null,
+    nama: null
+})
+
+let hapusUser = (idUser,nama) =>
+{
+    hapusUserData.id = idUser
+    hapusUserData.nama = nama
+
+    confirm.require({
+        message: `Yakin ingin menghapus data pengguna : ${nama} ?`,
+        header: 'Peringatan',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: 'Batal',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Hapus',
+            severity: 'danger'
+        },
+        accept: () => {
+            hapusUserData.post(`/super_admin/Pengguna/hapus/${idUser}`, 
+            {
+                onSuccess : () => refreshPage() 
+            })
+        },
+
+    });
 }
 
 </script>
@@ -151,6 +189,9 @@ const submitData = () =>
                     </form>
                 </Dialog>
                 <!-- modal tambah pengguna selesai -->
+                <!-- modal hapus pengguna  -->
+                <ConfirmDialog></ConfirmDialog>
+                <!-- modal hapus pengguna selesai  -->
                 <Card>
                     <template #content>
                         <DataTable :value="dataUserFix" paginator :rows="10">
@@ -167,10 +208,12 @@ const submitData = () =>
                                 </template>
                             </Column>
                             <Column header="Opsi">
-                                <template #body>
+                                <template #body="{data}">
                                     <div class="flex gap-2 items-center">
-                                        <Button size="small" icon="pi pi-pen-to-square" iconPos="right" severity="info" outlined />
-                                        <Button size="small" icon="pi pi-trash" iconPos="right" severity="danger" outlined/>
+                                        <NavLink class="border-none p-0 m-0" :href="`Pengguna/view/${data.id}`">
+                                            <Button size="small" icon="pi pi-pen-to-square" iconPos="right" severity="info" outlined />
+                                        </NavLink>
+                                        <Button @click="hapusUser(data.id, data.nama)" size="small" icon="pi pi-trash" iconPos="right" severity="danger" outlined/>
                                     </div>
                                 </template>
                             </Column>

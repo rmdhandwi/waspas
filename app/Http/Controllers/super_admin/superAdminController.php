@@ -19,8 +19,8 @@ class superAdminController extends Controller
 
     public function UsersPage()
     {
-        $user = User::where('role','admin')->select('username','nama','role','foto_profil')->get();
-        return Inertia::render('SuperAdmin/Users', ['usersData' => $user ]);
+        $user = User::where('role','admin')->select('id','username','nama','role','foto_profil')->get();
+        return Inertia::render('SuperAdmin/Users/Users', ['usersData' => $user ]);
     }
 
     public function tambahPengguna(Request $req)
@@ -62,5 +62,60 @@ class superAdminController extends Controller
                 'notif_message' => 'Gagal menambahkan pengguna :( ',
             ]);
         }
+    }
+
+    public function viewPengguna(Request $req)
+    {
+        $user = User::find($req->id);
+        return Inertia::render('SuperAdmin/Users/View', ['userData' => $user]);
+    }
+    public function updatePengguna(Request $req)
+    {
+        $updateData = [
+            'username' => $req->username,
+            'nama' => $req->nama,
+            'tgl_lahir' => Carbon::parse($req->tgl_lahir)->format('Y-m-d'),
+            'jkel' => $req->jkel,
+            'email' => $req->email,
+            'no_telp' => $req->no_telp,
+            'alamat' => $req->alamat,
+        ];
+
+        $insert = User::where('id', $req->id)->update($updateData);
+
+        if($insert)
+        {
+            return redirect()->route('super_admin.pengguna')->with([
+                'notif_status' => 'success',
+                'notif_message' => 'Berhasil update pengguna!',
+            ]);
+        }
+        else
+        {
+            return redirect()->route('super_admin.pengguna')->with([
+                'notif_status' => 'failed',
+                'notif_message' => 'Gagal mengupdate pengguna :( ',
+            ]);
+        }
+    }
+    public function hapusPengguna(Request $req)
+    {
+        $user = User::find($req->id)->delete();
+
+        if($user)
+        {
+            return back()->with([
+                'notif_status' => 'success',
+                'notif_message' => 'Berhasil menghapus pengguna!',
+            ]);
+        }
+        else 
+        {
+            return back()->with([
+                'notif_status' => 'failed',
+                'notif_message' => 'Gagal menghapus pengguna :(',
+            ]);
+        }
+        // dd($user);
     }
 }
