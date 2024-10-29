@@ -26,7 +26,8 @@ import ImgSrc from '../../../img/super_admin_profile.jpg'
                     'super_admin.pengguna') || route().current('super_admin.view.pengguna')">
                    <i class="pi pi-users"></i><span>Pengguna</span>
                 </NavLink>
-                <NavLink :href="route('super_admin.dashboard')">
+                <NavLink :href="route('super_admin.kriteria')" :active="route().current(
+                    'super_admin.kriteria') || route().current('super_admin.view.sub_kriteria')">
                     <i class="pi pi-file"></i><span>Kriteria</span>
                 </NavLink>
                 <NavLink :href="route('super_admin.dashboard')">

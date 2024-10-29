@@ -134,7 +134,7 @@ let hapusUser = (idUser,nama) =>
                     <h1 class="text-lg">Daftar Pengguna</h1>
                     <Button severity="success" size="small" label="Tambah Pengguna" @click="showForm = true"/>
                 </div>
-
+                
                 <!-- modal tambah pengguna -->
                 <Dialog v-model:visible="showForm" modal header="Tambah Pengguna" :style="{ width: '40rem' }">
                     <form @submit.prevent="submitData" class="flex flex-col gap-y-2" autocomplete="off">
