@@ -26,7 +26,6 @@ const userForm = useForm({
     tgl_lahir : props.userData.tgl_lahir,
     jkel : props.userData.jkel,
     email : props.userData.email,
-    // password : props.userData.password,
     foto_profil : props.userData.foto_profil,
     no_telp : props.userData.no_telp,
     alamat : props.userData.alamat,
@@ -62,7 +61,7 @@ const updateUser = () =>
     <Layout>
         <template #pageContent>
             <!-- modal update -->
-            <ConfirmDialog></ConfirmDialog>
+            <ConfirmDialog/>
             <!-- modal update selesai -->
             <div class="flex flex-col gap-[1rem]">
                 <!-- header -->

@@ -3,69 +3,58 @@
 namespace App\Http\Controllers\super_admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Kriteria as ModelsKriteria;
-use App\Models\SubKriteria;
+use App\Models\SubKriteria as ModelsSubKriteria;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
-class kriteria extends Controller
+class subKriteria extends Controller
 {
     //
-    public function kriteria_page()
-    {   
-        $dataKriteria = ModelsKriteria::all();
-        $dataSubKriteria = SubKriteria::join('kriteria','sub_kriteria.id_kriteria', '=','kriteria.id')->select('kriteria.jenis','sub_kriteria.*')->get();
-
-        return Inertia::render('SuperAdmin/Kriteria/Kriteria', ['dataKriteria' => $dataKriteria, 'dataSubKriteria' => $dataSubKriteria]);
-    }
-
-    public function tambah_kriteria(Request $req)
+    public function tambah_subKriteria(Request $req)
     {
         $req->validate([
             'jenis' => 'required',
             'nama' => 'required',
             'nilai_bobot' => 'required',
+            'id_relasi' => 'required',
         ]);
 
-        $insert = ModelsKriteria::create([
-            'jenis' => $req->jenis,
-            'nama' => $req->nama,
+        $insert = ModelsSubKriteria::create([
+            'jenis_sub' => $req->jenis,
+            'nama_sub' => $req->nama,
             'nilai_bobot' => $req->nilai_bobot,
+            'id_kriteria' => $req->id_relasi,
             'created_at' => Carbon::now('Asia/Jayapura')
         ]);
 
         if($insert)
         {
-            return redirect()->route('super_admin.kriteria')->with([
+            return redirect()->back()->with([
                 'notif_status' => 'success',
-                'notif_message' => 'Berhasil menambahkan kriteria!',
+                'notif_message' => 'Berhasil menambahkan sub kriteria!',
+                'is_kriteria' => false
             ]);
         }
         else
         {
-            return redirect()->route('super_admin.kriteria')->with([
+            return redirect()->back()->with([
                 'notif_status' => 'failed',
-                'notif_message' => 'Gagal menambahkan kriteria :( ',
+                'notif_message' => 'Gagal menambahkan sub kriteria :( ',
+                'is_kriteria' => false
             ]);
         }
     }
 
-    public function view_kriteria(Request $req)
-    {
-        $dataKriteria = ModelsKriteria::find($req->id);
-        return Inertia::render('SuperAdmin/Kriteria/View', ['dataKriteria' => $dataKriteria]);
-    }
-
-    public function update_kriteria(Request $req)
+    public function update_subkriteria(Request $req)
     {
         $updateData = [
-            'jenis' => $req->jenis,
-            'nama' => $req->nama,
+            'jenis_sub' => $req->jenis_sub,
+            'nama_sub' => $req->nama_sub,
             'nilai_bobot' => $req->nilai_bobot,
+            'id_kriteria' => $req->id_relasi,
         ];
 
-        $insert = ModelsKriteria::where('id', $req->id)->update($updateData);
+        $insert = ModelsSubKriteria::where('id', $req->id)->update($updateData);
 
         if($insert)
         {
@@ -83,9 +72,9 @@ class kriteria extends Controller
         }
     }
 
-    public function hapus_kriteria(Request $req)
+    public function hapus_subkriteria(Request $req)
     {
-        $user = ModelsKriteria::find($req->id)->delete();
+        $user = ModelsSubKriteria::find($req->id)->delete();
 
         if($user)
         {

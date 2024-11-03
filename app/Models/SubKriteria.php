@@ -11,4 +11,9 @@ class SubKriteria extends Model
     protected   $table = 'sub_kriteria',
                 $primaryKey = 'id',
                 $fillable = ['id','jenis_sub','nama_sub','nilai_bobot','id_kriteria','created_at'];
+    
+    public function kriteria()
+    {
+        return $this->hasMany(Kriteria::class, 'id_kriteria');
+    }
 }

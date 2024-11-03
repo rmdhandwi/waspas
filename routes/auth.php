@@ -2,6 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\Authentication;
 use App\Http\Controllers\super_admin\kriteria;
+use App\Http\Controllers\super_admin\subKriteria;
 use App\Http\Controllers\super_admin\superAdminController;
 use App\Http\Controllers\super_admin\user;
 
@@ -21,6 +22,13 @@ Route::middleware('auth')->group(function () {
     
     Route::get('super_admin/Kriteria', [kriteria::class, 'kriteria_page'])->name('super_admin.kriteria');
     Route::post('super_admin/Kriteria', [kriteria::class, 'tambah_kriteria'])->name('super_admin.tambah.kriteria');
+    Route::get('super_admin/Kriteria/view/{id}', [kriteria::class, 'view_kriteria']);
+    Route::post('super_admin/Kriteria/update/{id}', [kriteria::class, 'update_kriteria']);
+    Route::post('super_admin/Kriteria/hapus/{id}', [kriteria::class, 'hapus_kriteria']);
+    
+    Route::post('super_admin/SubKriteria', [subKriteria::class, 'tambah_subKriteria'])->name('super_admin.tambah.sub_kriteria');
+    Route::post('super_admin/SubKriteria/update/{id}', [subKriteria::class, 'update_subkriteria']);
+    Route::post('super_admin/SubKriteria/hapus/{id}', [subKriteria::class, 'hapus_subkriteria']);
 
     Route::get('/logout',[Authentication::class, 'destroy'])->name('logout');
 });

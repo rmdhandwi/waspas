@@ -32,7 +32,7 @@ import ImgSrc from '../../img/super_admin_profile.jpg'
                 <!-- header selesai -->
 
                 <!-- body -->
-                <div class="bg-gray-100 rounded-lg w-full p-4">
+                <div class="bg-gray-100 rounded-lg w-full p-4 min-h-screen">
                     <slot name="pageContent"/>
                 </div>
                 <!-- body selesai -->

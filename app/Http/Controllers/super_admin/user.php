@@ -59,6 +59,7 @@ class user extends Controller
         $user = ModelsUser::find($req->id);
         return Inertia::render('SuperAdmin/Users/View', ['userData' => $user]);
     }
+    
     public function updatePengguna(Request $req)
     {
         $updateData = [
