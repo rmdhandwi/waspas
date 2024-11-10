@@ -2,7 +2,7 @@
 import { onMounted,ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 // import layout
-import Layout from '@/Layouts/SuperAdminLayout.vue'
+import Layout from '@/Layouts/TemplateLayout.vue'
 
 // import component
 import Button from 'primevue/button'
@@ -43,9 +43,8 @@ const checkNotif = () =>
     {
         setTimeout(() =>
         {
-
             if(props.flash.notif_status === 'success') {
-                toast.add({ severity: 'success', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
+                toast.add({ severity: 'success', summary: 'success', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
             }
             else{
                 toast.add({ severity: 'error', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });

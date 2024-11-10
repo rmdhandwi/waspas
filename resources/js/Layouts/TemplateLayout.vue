@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 
 // import component
-import Sidebar from '@/Components/SuperAdmin/Sidebar.vue'
+import Sidebar from '@/Components/Sidebar.vue'
 import Avatar from 'primevue/avatar'
 
 // import sumber avatar

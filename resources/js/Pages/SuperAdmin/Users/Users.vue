@@ -2,7 +2,7 @@
 import { onMounted,ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 // import layout
-import Layout from '@/Layouts/SuperAdminLayout.vue'
+import Layout from '@/Layouts/TemplateLayout.vue'
 // import component
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -15,7 +15,8 @@ import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
 import Password from 'primevue/password';
 import Toast from 'primevue/toast';
-import { useToast } from "primevue/usetoast"
+import { useToast } from "primevue/usetoast";
+import Badge from 'primevue/badge';
 
 import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from "primevue/useconfirm";
@@ -154,7 +155,7 @@ let hapusUser = (idUser,nama) =>
                             <label for="email" class="font-semibold w-40">Email</label>
                             <InputText v-model="userForm.email" id="email" class="flex-auto" autocomplete="off" placeholder="Masukkan email" />
                         </div>
-                       
+                
                         <div class="flex items-center gap-4 my-4">
                             <label for="tglLahir" class="font-semibold w-40">Tanggal Lahir</label>
                             <DatePicker v-model="userForm.tgl_lahir" class="flex-auto"  id="tglLahir" showIcon fluid showButtonBar iconDisplay="input" dateFormat="yy-mm-dd" placeholder="Masukkan Tanggal lahir" />
@@ -198,7 +199,11 @@ let hapusUser = (idUser,nama) =>
                             <Column sortable field="index" header="No"/>
                             <Column sortable field="username" header="Username"/>
                             <Column sortable field="nama" header="Nama"/>
-                            <Column field="role" header="Jabatan"/>
+                            <Column header="Jabatan">
+                                <template #body="{data}">
+                                    <Badge :value="data.role" severity="info" v-if="data.role === 'admin'"></Badge>  
+                                </template>
+                            </Column>
                             <Column header="Foto">
                                 <template #body="{data}">
                                     <Image preview :alt="data.nama" :src="data.foto_profil" width="100px"v-if="data.foto_path"/>

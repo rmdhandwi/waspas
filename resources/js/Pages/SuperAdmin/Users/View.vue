@@ -2,7 +2,7 @@
 import { onMounted,ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 // import layout
-import Layout from '@/Layouts/SuperAdminLayout.vue'
+import Layout from '@/Layouts/TemplateLayout.vue'
 
 // import component
 import Button from 'primevue/button';
@@ -103,7 +103,7 @@ const updateUser = () =>
                     </div>
                     <div class="flex gap-4">
                         <Button type="submit" @click="updateUser()" severity="info" label="Update" />
-                        <Button severity="danger" label="Batal" />
+                        <Button as="a" severity="danger" label="Batal" :href="route('super_admin.pengguna')" />
                     </div>
                 </form>
             </div>
