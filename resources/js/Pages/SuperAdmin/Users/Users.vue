@@ -4,23 +4,25 @@ import { Head, router, useForm } from '@inertiajs/vue3'
 // import layout
 import Layout from '@/Layouts/TemplateLayout.vue'
 // import component
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import Image from 'primevue/image';
-import Dialog from 'primevue/dialog';
-import InputText from 'primevue/inputtext';
-import DatePicker from 'primevue/datepicker';
-import Select from 'primevue/select';
-import Password from 'primevue/password';
-import Toast from 'primevue/toast';
-import { useToast } from "primevue/usetoast";
-import Badge from 'primevue/badge';
-
-import ConfirmDialog from 'primevue/confirmdialog';
-import { useConfirm } from "primevue/useconfirm";
-import NavLink from '@/Components/NavLink.vue';
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Card from 'primevue/card'
+import Image from 'primevue/image'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import DatePicker from 'primevue/datepicker'
+import Select from 'primevue/select'
+import Password from 'primevue/password'
+import Toast from 'primevue/toast'
+import { useToast } from "primevue/usetoast"
+import Badge from 'primevue/badge'
+import {FilterMatchMode} from '@primevue/core/api' 
+import ConfirmDialog from 'primevue/confirmdialog'
+import { useConfirm } from "primevue/useconfirm"
+import NavLink from '@/Components/NavLink.vue'
+import InputIcon from 'primevue/inputicon'
+import IconField from 'primevue/iconfield'
 
 
 let props = defineProps({ usersData : Object, flash : Object})
@@ -34,6 +36,17 @@ onMounted(() =>
 let dataUserFix = ref([])
 
 let showForm = ref(false)
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+})
+
+const exportCSV = () =>
+{
+    dt.value.exportCSV()
+}
+
+let dt = ref()
 
 let jkel = [{jenis : 'Laki-Laki'}, {jenis : 'Perempuan'}]
 
@@ -60,10 +73,10 @@ const checkNotif = () =>
         setTimeout(() =>
         {
             if(props.flash.notif_status === 'success') {
-                toast.add({ severity: 'success', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
+                toast.add({ severity: 'success', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' })
             }
             else{
-                toast.add({ severity: 'error', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
+                toast.add({ severity: 'error', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' })
             }
         },1000)
     }
@@ -81,7 +94,7 @@ const refreshPage = () =>
     hapusUserData.reset()
     setTimeout(() => isLoading.value = false, 600)
 }
-
+    
 const submitData = () =>
 {
     userForm.post(route('super_admin.tambah.pengguna'), 
@@ -120,7 +133,7 @@ let hapusUser = (idUser,nama) =>
             })
         },
 
-    });
+    })
 }
 
 </script>
@@ -195,7 +208,21 @@ let hapusUser = (idUser,nama) =>
                 <!-- modal hapus pengguna selesai  -->
                 <Card>
                     <template #content>
-                        <DataTable :value="dataUserFix" paginator :rows="10">
+                        <DataTable v-model:filters="filters" ref="dt" :value="dataUserFix" paginator :rows="10">
+                            <template #header>
+                                <div class="flex items-center justify-between">
+                                    <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" size="small"/>
+                                    <IconField>
+                                        <InputIcon>
+                                            <i class="pi pi-search me-4" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Cari Data Pengguna" />
+                                    </IconField>
+                                </div>
+                            </template>
+                            <template #empty>
+                                <span class="flex justify-center items-center text-lg">Tidak ada data</span>
+                            </template>
                             <Column sortable field="index" header="No"/>
                             <Column sortable field="username" header="Username"/>
                             <Column sortable field="nama" header="Nama"/>

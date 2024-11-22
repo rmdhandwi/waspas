@@ -12,6 +12,10 @@ import { useForm } from '@inertiajs/vue3'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
+import InputIcon from 'primevue/inputicon'
+import IconField from 'primevue/iconfield'
+import {FilterMatchMode} from '@primevue/core/api' 
+
 
 const props = defineProps({dataKriteria : Object})
 
@@ -21,6 +25,17 @@ onMounted(() =>
 })
 
 const emit = defineEmits(['refreshPage'])
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+})
+
+const exportCSV = () =>
+{
+    dt.value.exportCSV()
+}
+
+let dt = ref()
 
 let dataFix = ref([])
 
@@ -82,7 +97,7 @@ const hapusData = (id, jenis) =>
 const updateData = (id) => 
 {
     confirm.require({
-        message: `Simpan perubahan ?`,
+        message: `Simpan Data ?`,
         header: 'Peringatan',
         icon: 'pi pi-exclamation-triangle',
         rejectProps: {
@@ -105,8 +120,6 @@ const updateData = (id) =>
 
     })
 }
-
-
 
 </script>
 
@@ -140,7 +153,21 @@ const updateData = (id) =>
     <ConfirmDialog style="width: 24rem;"/>
     <Card>
         <template #content>
-            <DataTable :value="dataFix" paginator :rows="10">
+            <DataTable v-model:filters="filters" ref="dt" :value="dataFix" paginator :rows="10">
+                <template #header>
+                    <div class="flex items-center justify-between">
+                        <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" size="small"/>
+                        <IconField>
+                            <InputIcon>
+                                <i class="pi pi-search me-4" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Cari Data Kriteria" />
+                        </IconField>
+                    </div>
+                </template>
+                <template #empty>
+                    <span class="flex justify-center items-center text-lg">Tidak ada data</span>
+                </template>
                 <Column sortable field="index" header="No"/>
                 <Column sortable field="jenis" header="Id Kriteria"/>
                 <Column sortable field="nama" header="Nama Kriteria"/>

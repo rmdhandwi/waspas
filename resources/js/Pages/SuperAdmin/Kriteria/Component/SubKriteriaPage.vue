@@ -13,6 +13,9 @@ import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
+import InputIcon from 'primevue/inputicon'
+import IconField from 'primevue/iconfield'
+import {FilterMatchMode} from '@primevue/core/api' 
 
 const props = defineProps({dataKriteria : Object, dataSubKriteria : Object})
 
@@ -22,6 +25,17 @@ onMounted(() =>
 })
 
 const emit = defineEmits(['refreshPage'])
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+})
+
+const exportCSV = () =>
+{
+    dt.value.exportCSV()
+}
+
+let dt = ref()
 
 let dataSubKriteriaFix = ref([])
 
@@ -145,9 +159,20 @@ const hapusData = (id, jenis) =>
     <ConfirmDialog style="width: 24rem;"/>
     <Card>
         <template #content>
-            <DataTable :value="dataSubKriteriaFix" paginator :rows="10">
+            <DataTable v-model:filters="filters" ref="dt" :value="dataSubKriteriaFix" paginator :rows="10">
+                <template #header>
+                    <div class="flex items-center justify-between">
+                        <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" size="small"/>
+                        <IconField>
+                            <InputIcon>
+                                <i class="pi pi-search me-4" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Cari Data Sub Kriteria" />
+                        </IconField>
+                    </div>
+                </template>
                 <template #empty>
-                    <Message severity="secondary" class="p-2">Tidak ada data sub kriteria</Message> 
+                    <span class="flex justify-center items-center text-lg">Tidak ada data</span>
                 </template>
                 <Column sortable field="index" header="No"/>
                 <Column sortable field="jenis_sub" header="Id Sub Kriteria"/>

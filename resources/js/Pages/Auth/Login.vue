@@ -15,7 +15,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('login');
+    form.post('login'); 
 };
 </script>
 

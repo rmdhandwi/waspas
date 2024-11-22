@@ -1,4 +1,7 @@
 <?php
+
+use App\Http\Controllers\admin\adminController;
+use App\Http\Controllers\Admin\DataWarga;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\Authentication;
 use App\Http\Controllers\super_admin\kriteria;
@@ -29,6 +32,12 @@ Route::middleware('auth')->group(function () {
     Route::post('super_admin/SubKriteria', [subKriteria::class, 'tambah_subKriteria'])->name('super_admin.tambah.sub_kriteria');
     Route::post('super_admin/SubKriteria/update/{id}', [subKriteria::class, 'update_subkriteria']);
     Route::post('super_admin/SubKriteria/hapus/{id}', [subKriteria::class, 'hapus_subkriteria']);
+
+    Route::get('admin/Dashboard', [adminController::class, 'Dashboard'])->name('admin.dashboard');
+    Route::get('admin/Warga', [DataWarga::class, 'dataWarga'])->name('admin.data_warga');
+    Route::post('admin/Warga', [DataWarga::class, 'simpanDataWarga'])->name('admin.tambah.data_warga');
+    Route::post('admin/Warga/update/{id}', [DataWarga::class, 'updateDataWarga']);
+    Route::post('admin/Warga/hapus/{id}', [DataWarga::class, 'hapusDataWarga']);
 
     Route::get('/logout',[Authentication::class, 'destroy'])->name('logout');
 });

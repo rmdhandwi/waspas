@@ -30,7 +30,6 @@ class Authentication extends Controller
         
         if(Auth::attempt($credentials))
         {
-            // $user = User::where('email', $request->email)->first();
             $notification = [
                 'notif_status' => 'success',
                 'message' => 'Selamat Datang, '.auth()->user()->nama,
@@ -51,7 +50,6 @@ class Authentication extends Controller
         {
             return response('terjadi kesalahan!',200);
         }
-        // return redirect()->intended(route('dashboard', absolute: false));
     }
 
     public function destroy()
@@ -59,13 +57,5 @@ class Authentication extends Controller
         Auth::logout();
         Session::flush();
         return redirect()->route('login');
-
-        // Auth::guard('web')->logout();
-
-        // $request->session()->invalidate();
-
-        // $request->session()->regenerateToken();
-
-        // return redirect('/');
     }
 }

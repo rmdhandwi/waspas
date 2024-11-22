@@ -1,12 +1,32 @@
 <script setup>
-import { onMounted, ref } from 'vue';
 
 // import component
 import Sidebar from '@/Components/Sidebar.vue'
 import Avatar from 'primevue/avatar'
 
 // import sumber avatar
-import ImgSrc from '../../img/super_admin_profile.jpg'
+import ImgSrc from '/resources/img/super_admin_profile.jpg'
+import { onBeforeMount, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
+
+
+const pageProps = defineProps({ localRole : String})
+
+onBeforeMount(() =>
+{
+    checkStorage()
+})
+
+const refreshPage = () =>
+{
+    router.visit(router.page.url)
+}
+
+const checkStorage = () => 
+{
+    if(!localStorage.role) { refreshPage() }
+}
+
 
 </script>
 
@@ -18,7 +38,7 @@ import ImgSrc from '../../img/super_admin_profile.jpg'
         <!-- sidebar selesai -->
          
         <!-- konten halaman -->
-        <div class="w-full h-full px-2 ml-[200px]">
+        <div class="w-full h-full px-2 ml-[200px] overflow-hidden">
             <div class="flex flex-col gap-[.5rem]">
                 <!-- header -->
                 <div  class="bg-gray-100 rounded-lg w-full flex items-center justify-between p-2">

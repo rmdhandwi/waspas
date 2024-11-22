@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3000
--- Generation Time: Nov 10, 2024 at 06:15 AM
+-- Generation Time: Nov 22, 2024 at 02:04 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.3.7
 
@@ -44,6 +44,42 @@ CREATE TABLE `cache_locks` (
   `owner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `data_warga`
+--
+
+CREATE TABLE `data_warga` (
+  `id` bigint UNSIGNED NOT NULL,
+  `nomor_kk` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nama_kk` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `provinsi` varchar(5) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kabupaten` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kampung` varchar(5) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `rt` varchar(5) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `rw` varchar(5) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `asal_suku` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pekerjaan` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `agama` varchar(4) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `jenis_kelamin` varchar(1) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sanitasi` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `j_kloset` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `t_limbah` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `akses_air_minum` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status_rumah` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `struktur_bangunan` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `data_warga`
+--
+
+INSERT INTO `data_warga` (`id`, `nomor_kk`, `nama_kk`, `provinsi`, `kabupaten`, `kampung`, `rt`, `rw`, `asal_suku`, `pekerjaan`, `agama`, `jenis_kelamin`, `sanitasi`, `j_kloset`, `t_limbah`, `akses_air_minum`, `status_rumah`, `struktur_bangunan`, `created_at`) VALUES
+(1, '12345', 'Rizky', 'Papua', 'Jayapura', 'Sereh', '01', '02', 'Bugis', 'Web Deve', 'Is', 'L', 'Milik Sendiri', 'WC Duduk', 'Septictank Pribadi', 'Galon', 'Milik Sendiri', 'Permanen', '2024-11-21 15:57:47'),
+(2, '123456', 'Dantex', 'Papua', 'Jayapura', 'Sereh', '02', '01', 'Bugis', 'Pegawai', 'Is', 'L', 'Milik Sendiri', 'WC Jongkok', 'Septictank Pribadi', 'Masak Air', 'Kontrak', 'Semi Permanen', '2024-11-21 21:33:48');
 
 -- --------------------------------------------------------
 
@@ -144,7 +180,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (4, '2024_10_27_091909_add_username_column_to_users_table', 2),
 (5, '2024_10_27_092839_make_alamat_nullable_column_on_users_table', 3),
 (6, '2024_10_29_091057_create_kriteria_and_sub_kriteria_table', 4),
-(7, '2024_10_29_094028_create_sub_kriteria_table', 5);
+(7, '2024_10_29_094028_create_sub_kriteria_table', 5),
+(8, '2024_11_20_061644_create_table_data_warga', 6);
 
 -- --------------------------------------------------------
 
@@ -178,8 +215,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('khGFyKAiXcmiT3e8jejfLWbub8WjOu6ML7gTR7ds', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoibFdJWUh6SDZNVDl6N2lKcVhIeXFEZmF4WHgxbjhuMVFVdldPeVk3VSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjI6Imh0dHA6Ly93YXNwYXMudGVzdDo2NjYiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1730613092),
-('TIKcvDXqFIj0OMXrs72WA7LL7Hd9R3dIXKoxrEFU', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36', 'YTozOntzOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czoyMToiaHR0cDovLzEyNy4wLjAuMTo4MDAwIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo2OiJfdG9rZW4iO3M6NDA6IlF4ME5jaHpuY1VnaGowazlhaWFNRzBpS1RXZUs3T1NXeWZZRFB1cFAiO30=', 1730620934);
+('XFDOkD8SvyhRMYmXOkoDVRhos6lLheE3VE9GwXLN', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36', 'YTozOntzOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czoyMToiaHR0cDovLzEyNy4wLjAuMTo4MDAwIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo2OiJfdG9rZW4iO3M6NDA6IjFwVkdiQU5FMEhPR2ZReFNHeU9iTWlicnlQVzIwbVdIWkZPN0czTnYiO30=', 1732284279);
 
 -- --------------------------------------------------------
 
@@ -233,7 +269,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `nama`, `tgl_lahir`, `jkel`, `email`, `foto_profil`, `password`, `no_telp`, `alamat`, `remember_token`, `role`, `created_at`) VALUES
 (1, 'superadmin', 'qiM8eSnhfW', '1997-07-07', 'Laki-laki', '7mEdu8KxZq@gmail.com', NULL, '$2y$12$pEksxzUNUPd9dYirmZ7On.4hDhciAd2dnAP06rpl/a4VyU4jMx6yS', '081234567800', NULL, NULL, 'super_admin', '2024-10-27 09:37:51'),
-(2, 'admin01', 'Layla', '1995-06-07', 'Perempuan', 'admin01@gmail.com', NULL, '$2y$12$1/TKFOPxC.y7PN2HhvmN8eAnFAg7X0fqRE/n0F0Ius8h35iEKGV..', '081234567801', NULL, NULL, 'admin', '2024-10-28 06:32:37'),
+(2, 'admin01', 'Laylaaaa', '1995-06-07', 'Perempuan', 'admin01@gmail.com', NULL, '$2y$12$1/TKFOPxC.y7PN2HhvmN8eAnFAg7X0fqRE/n0F0Ius8h35iEKGV..', '081234567801', 'land of dawn', NULL, 'admin', '2024-10-28 06:32:37'),
 (3, 'admin02', 'Gusionn', '1990-01-02', 'Laki-laki', 'admin02@gmail.com', NULL, '$2y$12$SfBz7OyT3NItbF4.tjI3buzN5uEy2MeorzCg0ZxZ/E9XFhnzBOVFC', '081234567802', 'Land of dawn', NULL, 'admin', '2024-10-28 06:32:38'),
 (4, 'admin03', 'elon musk', '1976-07-07', 'Laki-Laki', 'admin03@gmail.com', NULL, '$2y$12$qNEE8nRa2/n/HzaL.8lV5.qOOfNvCdki0qYl3n3ZQoVNwF.qWb7OC', '081234567803', NULL, NULL, 'admin', '2024-10-28 17:44:55');
 
@@ -252,6 +288,12 @@ ALTER TABLE `cache`
 --
 ALTER TABLE `cache_locks`
   ADD PRIMARY KEY (`key`);
+
+--
+-- Indexes for table `data_warga`
+--
+ALTER TABLE `data_warga`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `failed_jobs`
@@ -319,6 +361,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `data_warga`
+--
+ALTER TABLE `data_warga`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
@@ -340,7 +388,7 @@ ALTER TABLE `kriteria`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `sub_kriteria`

@@ -1,9 +1,13 @@
 <script setup>
+import { ref } from 'vue'
 import NavLink from '@/Components/NavLink.vue'
 import Button from 'primevue/button'
 import Image from 'primevue/image'
-
 import ImgSrc from '../../img/super_admin_profile.jpg'
+
+const roleUser = localStorage.role|| ref(null)
+
+const deleteLocalStorage = () =>  setTimeout(() => { localStorage.clear()},1000)
 </script>
 
 <template>
@@ -18,8 +22,8 @@ import ImgSrc from '../../img/super_admin_profile.jpg'
             </div>
             <!-- header selesai -->
 
-            <!-- side menu -->
-            <div class="flex flex-col gap-[1.8rem] items-start px-2">
+            <!-- side menu super admin-->
+            <div class="flex flex-col gap-[1.8rem] items-start px-2" v-if="roleUser === 'super_admin'">
                 <NavLink :href="route('super_admin.dashboard')" :active="route().current('super_admin.dashboard')">
                     <i class="pi pi-home"></i><span>Dashboard</span>
                 </NavLink>
@@ -36,8 +40,18 @@ import ImgSrc from '../../img/super_admin_profile.jpg'
                     <i class="pi pi-inbox"></i><span>Hasil Seleksi</span>
                 </NavLink>
             </div>
+
+            <!-- side menu admin-->
+            <div class="flex flex-col gap-[1.8rem] items-start px-2" v-else-if="roleUser === 'admin'">
+                <NavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
+                    <i class="pi pi-home"></i><span>Dashboard</span>
+                </NavLink>
+                <NavLink :href="route('admin.data_warga')" :active="route().current('admin.data_warga')">
+                    <i class="pi pi-users"></i><span>Data Rumah Tangga Warga</span>
+                </NavLink>
+            </div>
         </div>
-        <Button as="a" severity="danger" label="logout" icon="pi pi-power-off" :href="route('logout')" />
+        <Button as="a" severity="danger" @click="deleteLocalStorage()" label="logout" icon="pi pi-power-off" :href="route('logout')" />
         <!-- side menu selesai -->
     </div>
 </template>

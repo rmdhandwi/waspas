@@ -12,15 +12,9 @@ import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import Toast from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
-// import { defineAsyncComponent } from 'vue'
 
 import kriteriaComp from './Component/KriteriaPage.vue'
 import subKriteriaComp from './Component/SubKriteriaPage.vue'
-
-// const subKriteriaComp = defineAsyncComponent(() =>
-// {
-//     import('./Component/SubKriteriaPage.vue')
-// })
 
 onMounted(() =>
 {
