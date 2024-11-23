@@ -14,6 +14,8 @@ class kriteria extends Controller
     //
     public function kriteria_page()
     {   
+        // $jenis = ModelsKriteria::generateJenisKriteria();
+        // dd($jenis);
         $dataKriteria = ModelsKriteria::all();
         $dataSubKriteria = SubKriteria::join('kriteria','sub_kriteria.id_kriteria', '=','kriteria.id')->select('kriteria.jenis','sub_kriteria.*')->get();
 
@@ -22,14 +24,18 @@ class kriteria extends Controller
 
     public function tambah_kriteria(Request $req)
     {
+        // dd($req);
         $req->validate([
-            'jenis' => 'required',
             'nama' => 'required',
-            'nilai_bobot' => 'required',
+            'nilai_bobot' => 'required|numeric',
+        ],
+        [
+            '*.required' => 'Kolom Wajib Diisi',
+            '*.numeric' => 'Kolom Wajib Berupa Angka',
         ]);
 
         $insert = ModelsKriteria::create([
-            'jenis' => $req->jenis,
+            'jenis' => ModelsKriteria::generateJenisKriteria(),
             'nama' => $req->nama,
             'nilai_bobot' => $req->nilai_bobot,
             'created_at' => Carbon::now('Asia/Jayapura')
@@ -59,8 +65,18 @@ class kriteria extends Controller
 
     public function update_kriteria(Request $req)
     {
+        $req->validate(
+            [
+                'nama' => 'required',
+                'nilai_bobot' => 'required|numeric',
+            ],
+            [
+                '*.required' => 'Kolom Wajib Diisi',
+                '*.numeric' => 'Kolom Wajib Berupa Angka',
+            ]
+        );
+
         $updateData = [
-            'jenis' => $req->jenis,
             'nama' => $req->nama,
             'nilai_bobot' => $req->nilai_bobot,
         ];

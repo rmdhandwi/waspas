@@ -63,8 +63,7 @@ const tambahData = () =>
 }
 
 const kriteriaForm = useForm({
-    jenis : null,
-    nama : null,
+    nama : '',
     nilai_bobot : null
 })
 
@@ -77,17 +76,33 @@ const subKriteriaForm = useForm({
 
 const tambahKriteria = () => 
 {
+    showKriteriaForm.value = false
+
     kriteriaForm.post(route('super_admin.tambah.kriteria'), 
     {
-        onSuccess : () => refreshPage()  
+        onSuccess : () => refreshPage(),
+        onError : () => {
+            toast.add({ severity: 'error', summary: 'notifikasi', detail:'Gagal menambahkan data kriteria :( ', life: 4000,  group : 'tc' }),
+            showKriteriaForm.value = true
+        }
     })
 }
 const tambahSubKriteria = () => 
 {
+    showSubKriteriaForm.value = false
     subKriteriaForm.post(route('super_admin.tambah.sub_kriteria'), 
     {
-        onSuccess : () => refreshPage()  
+        onSuccess : () => refreshPage(),
+        onError : () => {
+            toast.add({ severity: 'error', summary: 'notifikasi', detail:'Gagal menambahkan data subkrtieria :( ', life: 4000,  group : 'tc' }),
+            showSubKriteriaForm.value = true
+        }
     })
+}
+
+const errorToast = (errorMessage) => 
+{
+    toast.add({ severity: 'error', summary: 'notifikasi', detail: errorMessage, life: 4000,  group : 'tc' })
 }
 </script>
 
@@ -107,65 +122,71 @@ const tambahSubKriteria = () =>
                     <Button @click="tambahData()" severity="success" label="Tambah Data" size="small" class="w-[12rem]"/>
                 </div>
                 <!-- dialog tambah data kriteria -->
-                <Dialog modal header="Tambah Kriteria" :style="{width: '40rem'}" v-model:visible="showKriteriaForm">
-                    <form @submit.prevent="tambahKriteria" class="flex flex-col gap-y-2" autocomplete="off">
+                <Dialog modal  header="Tambah Kriteria" :style="{width: '40rem'}" v-model:visible="showKriteriaForm">
+                    <form @submit.prevent="tambahKriteria" class="flex items-center gap-x-[4rem] flex-wrap" autocomplete="off">
                         <!-- data form -->
-                        <div class="flex items-center gap-4 my-4">
-                            <label for="jenis" class="font-semibold w-40">Jenis</label>
-                            <InputText v-model="kriteriaForm.jenis" id="jenis" class="flex-auto" autocomplete="off" placeholder="Masukkan jenis" />
-                        </div>
-
-                        <div class="flex items-center gap-4 my-4">
+                        
+                        <div class="flex flex-col gap-4 my-4">
                             <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                            <InputText v-model="kriteriaForm.nama" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                            <InputText v-model="kriteriaForm.nama" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" :invalid="kriteriaForm.errors.nama?true:false" />
+                            <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nama">
+                                {{ kriteriaForm.errors.nama }}
+                            </span>
                         </div>
 
-                        <div class="flex items-center gap-4 my-4">
+                        <div class="flex flex-col gap-4 my-4">
                             <label for="nilai" class="font-semibold w-40">Nilai Bobot (%)</label>
-                            <!-- <InputText v-model="kriteriaForm.nilai_bobot" id="nilai" class="flex-auto" autocomplete="off" placeholder="Masukkan nilai bobot" /> -->
-                            <InputNumber v-model="kriteriaForm.nilai_bobot" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                            <InputNumber v-model="kriteriaForm.nilai_bobot" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot" :invalid="kriteriaForm.errors.nilai_bobot?true:false"/>
+                            <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nilai_bobot">
+                                {{ kriteriaForm.errors.nilai_bobot }}
+                            </span>
                         </div>
 
                         <div class="flex justify-end gap-2">
-                            <Button type="button" label="Reset" outlined severity="danger" @click="kriteriaForm.reset()"/>
-                            <Button type="submit" label="Simpan Data" outlined severity="info"/>
+                            <Button type="button" label="Reset" severity="danger" @click="kriteriaForm.reset()"/>
+                            <Button type="submit" label="Simpan Data" severity="info"/>
                         </div>
                     </form>
                 </Dialog>
                 <!-- dialog tambah data kriteria selesai -->
+
                 <!-- dialog tambah data subkriteria -->
                 <Dialog modal header="Tambah Sub Kriteria" :style="{width: '40rem'}" v-model:visible="showSubKriteriaForm">
-                    <form @submit.prevent="tambahSubKriteria" class="flex flex-col gap-y-2" autocomplete="off">
+                    <form @submit.prevent="tambahSubKriteria" class="flex items-center flex-wrap gap-4" autocomplete="off">
                         <!-- data form -->
-                        <div class="flex items-center gap-4 my-4">
-                            <label for="jenis" class="font-semibold w-40">Id Subkriteria</label>
-                            <InputText v-model="subKriteriaForm.jenis" id="jenis" class="flex-auto" autocomplete="off" placeholder="Masukkan jenis" />
-                        </div>
-
-                        <div class="flex items-center gap-4 my-4">
+                        <div class="flex flex-col w-full gap-4 my-4">
                             <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                            <InputText v-model="subKriteriaForm.nama" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                            <InputText v-model="subKriteriaForm.nama" :invalid="subKriteriaForm.errors.nama?true:false" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                            <span class="text-sm text-red-500" v-if="subKriteriaForm.errors.nama">
+                                {{ subKriteriaForm.errors.nama }}
+                            </span>
                         </div>
 
-                        <div class="flex items-center gap-4 my-4">
+                        <div class="flex flex-col gap-4 my-4">
                             <label for="nilai" class="font-semibold w-40">Nilai</label>
-                            <InputNumber v-model="subKriteriaForm.nilai_bobot" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                            <InputNumber v-model="subKriteriaForm.nilai_bobot" :invalid="subKriteriaForm.errors.nilai_bobot?true:false" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                            <span class="text-sm text-red-500" v-if="subKriteriaForm.errors.nilai_bobot">
+                                {{ subKriteriaForm.errors.nilai_bobot }}
+                            </span>
                         </div>
 
-                        <div class="flex items-center gap-4 my-4">
+                        <div class="flex flex-col gap-4 my-4">
                             <label for="id_relasi" class="font-semibold w-40">Id Kriteria</label>
-                            <Select v-model="subKriteriaForm.id_relasi" :options="props.dataKriteria" optionLabel="jenis" optionValue="id" placeholder="Pilih Id Kriteria"/>
+                            <Select v-model="subKriteriaForm.id_relasi" :invalid="subKriteriaForm.errors.id_relasi?true:false" :options="props.dataKriteria" optionLabel="jenis" optionValue="id" placeholder="Pilih Id Kriteria"/>
+                            <span class="text-sm text-red-500" v-if="subKriteriaForm.errors.id_relasi">
+                                {{ subKriteriaForm.errors.id_relasi }}
+                            </span>
                         </div>
 
                         <div class="flex justify-end gap-2">
-                            <Button type="button" label="Reset" outlined severity="danger" @click="subKriteriaForm.reset()"/>
-                            <Button type="submit" label="Simpan Data" outlined severity="info"/>
+                            <Button type="button" label="Reset" severity="danger" @click="subKriteriaForm.reset()"/>
+                            <Button type="submit" label="Simpan Data" severity="info"/>
                         </div>
                     </form>
                 </Dialog>
                 <!-- dialog tambah data subkriteria selesai -->
                 <kriteriaComp v-if="is_kriteria" :dataKriteria="props.dataKriteria" @refresh-page="refreshPage()"/>
-                <subKriteriaComp v-else :dataKriteria="props.dataKriteria" :dataSubKriteria="dataSubKriteria" @refresh-page="refreshPage()"/>
+                <subKriteriaComp v-else :dataKriteria="props.dataKriteria" :dataSubKriteria="dataSubKriteria" @refresh-page="refreshPage()" @error-toast="errorToast('Gagal update data sub kriteria :( ')"/>
             </div>
         </template>
     </Layout>

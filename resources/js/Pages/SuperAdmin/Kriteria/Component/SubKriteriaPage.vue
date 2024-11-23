@@ -24,7 +24,7 @@ onMounted(() =>
     dataSubKriteriaFix.value = props.dataSubKriteria.map((p,i) => ({index : i+1, ...p}))
 })
 
-const emit = defineEmits(['refreshPage'])
+const emit = defineEmits(['refreshPage', 'errorToast'])
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -44,21 +44,19 @@ const confirm = useConfirm()
 const showUbahData = ref(false)
 
 let hapusForm = useForm({
-    id : null,
-    jenis : null
+    id : null
 })
 
 let ubahForm = useForm({
     id : null,
-    jenis_sub : null,
     nama_sub : null,
     nilai_bobot : null,
-    jenis : null,
     id_relasi : null,
 })
 
 const lihatData = (index) =>
 {
+    ubahForm.clearErrors()
     showUbahData.value = true
     ubahForm.id = dataSubKriteriaFix.value[index-1]['id']
     ubahForm.jenis_sub = dataSubKriteriaFix.value[index-1]['jenis_sub']
@@ -82,10 +80,19 @@ const updateData = (id) =>
             label: 'Ya',
             severity: 'info'
         },
+        reject : () => {
+            ubahForm.reset()
+        },
         accept: () => {
+            showUbahData.value = false
             ubahForm.post(`/super_admin/SubKriteria/update/${id}`, 
             {
-                onSuccess : () => emit('refreshPage')
+                onSuccess : () => emit('refreshPage'),
+                onError : () => 
+                {
+                    showUbahData.value = true
+                    emit('errorToast')
+                }
             }
             )
         },
@@ -97,7 +104,6 @@ const hapusData = (id, jenis) =>
 {
 
     hapusForm.id = id
-    hapusForm.jenis = jenis
 
     confirm.require({
         message: `Yakin ingin menghapus data kriteria : ${jenis} ?`,
@@ -111,6 +117,9 @@ const hapusData = (id, jenis) =>
         acceptProps: {
             label: 'Hapus',
             severity: 'danger'
+        },
+        reject : () => {
+            hapusForm.reset()
         },
         accept: () => {
             hapusForm.post(`/super_admin/SubKriteria/hapus/${id}`, 
@@ -128,28 +137,30 @@ const hapusData = (id, jenis) =>
 <template>
     <!-- Dialog ubah data subkriteria -->
      <Dialog modal header="Ubah Data Sub Kriteria" :style="{width : '40rem'}" v-model:visible="showUbahData">
-        <form @submit.prevent="updateData(ubahForm.id)" class="flex flex-col gap-y-2" autocomplete="off">
-            <div class="flex items-center gap-4 my-4">
-                <label for="jenis" class="font-semibold w-40">Id Subkriteria</label>
-                <InputText v-model="ubahForm.jenis_sub" id="jenis" class="flex-auto" autocomplete="off" placeholder="Masukkan jenis" />
-            </div>
+        <form @submit.prevent="updateData(ubahForm.id)" class="flex flex-wrap gap-x-[2rem]" autocomplete="off">
 
-            <div class="flex items-center gap-4 my-4">
+            <div class="flex flex-col gap-4 my-4 w-full">
                 <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                <InputText v-model="ubahForm.nama_sub" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                <InputText v-model="ubahForm.nama_sub" id="nama" :invalid="ubahForm.errors.nama_sub?true:false" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                <span class="text-sm text-red-500" v-if="ubahForm.errors.nama_sub">
+                    {{ ubahForm.errors.nama_sub }}
+                 </span>
             </div>
 
-            <div class="flex items-center gap-4 my-4">
+            <div class="flex flex-col gap-4 my-4">
                 <label for="nilai" class="font-semibold w-40">Nilai</label>
-                <InputNumber v-model="ubahForm.nilai_bobot" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                <InputNumber v-model="ubahForm.nilai_bobot" :invalid="ubahForm.errors.nilai_bobot?true:false" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                <span class="text-sm text-red-500" v-if="ubahForm.errors.nilai_bobot">
+                    {{ ubahForm.errors.nilai_bobot }}
+                </span>
             </div>
 
-            <div class="flex items-center gap-4 my-4">
+            <div class="flex flex-col gap-4 my-4">
                 <label for="id_relasi" class="font-semibold w-40">Id Kriteria</label>
-                <Select v-model="ubahForm.id_relasi" :options="props.dataKriteria" optionLabel="jenis" optionValue="id" :placeholder="ubahForm.jenis"/>
+                <Select v-model="ubahForm.id_relasi" :options="props.dataKriteria" optionLabel="jenis" optionValue="id" :placeholder="ubahForm.jenis" class="w-[14rem]"/>
             </div>
 
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end my-2 gap-2">
                 <Button type="button" label="Batal" outlined severity="danger" @click="showUbahData = false"/>
                 <Button type="submit" label="Simpan Data" outlined severity="info"/>
             </div>
@@ -159,7 +170,7 @@ const hapusData = (id, jenis) =>
     <ConfirmDialog style="width: 24rem;"/>
     <Card>
         <template #content>
-            <DataTable v-model:filters="filters" ref="dt" :value="dataSubKriteriaFix" paginator :rows="10">
+            <DataTable removableSort v-model:filters="filters" ref="dt" :value="dataSubKriteriaFix" paginator :rows="10">
                 <template #header>
                     <div class="flex items-center justify-between">
                         <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" size="small"/>
@@ -183,7 +194,7 @@ const hapusData = (id, jenis) =>
                     <template #body="{data}">
                         <div class="flex gap-2 items-center">
                             <Button size="small" @click="lihatData(data.index)" icon="pi pi-pen-to-square" iconPos="right" severity="info" outlined/>
-                            <Button size="small" @click="hapusData(data.id, data.jenis)" icon="pi pi-trash" iconPos="right" severity="danger" outlined/>
+                            <Button size="small" @click="hapusData(data.id, data.jenis_sub)" icon="pi pi-trash" iconPos="right" severity="danger" outlined/>
                         </div>
                     </template>
                 </Column>

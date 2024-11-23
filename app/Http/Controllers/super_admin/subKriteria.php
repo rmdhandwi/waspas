@@ -13,14 +13,15 @@ class subKriteria extends Controller
     public function tambah_subKriteria(Request $req)
     {
         $req->validate([
-            'jenis' => 'required',
             'nama' => 'required',
-            'nilai_bobot' => 'required',
+            'nilai_bobot' => 'required|numeric',
             'id_relasi' => 'required',
+        ],[
+            '*.required' => 'Kolom Wajib Diisi',
+            '*.numeric' => 'Kolom Wajib Berupa Angka',
         ]);
 
         $insert = ModelsSubKriteria::create([
-            'jenis_sub' => $req->jenis,
             'nama_sub' => $req->nama,
             'nilai_bobot' => $req->nilai_bobot,
             'id_kriteria' => $req->id_relasi,
@@ -47,8 +48,16 @@ class subKriteria extends Controller
 
     public function update_subkriteria(Request $req)
     {
+        $req->validate([
+            'nama_sub' => 'required',
+            'nilai_bobot' => 'required|numeric',
+            'id_relasi' => 'required',
+        ], [
+            '*.required' => 'Kolom Wajib Diisi',
+            '*.numeric' => 'Kolom Wajib Berupa Angka',
+        ]);
+
         $updateData = [
-            'jenis_sub' => $req->jenis_sub,
             'nama_sub' => $req->nama_sub,
             'nilai_bobot' => $req->nilai_bobot,
             'id_kriteria' => $req->id_relasi,
@@ -60,14 +69,14 @@ class subKriteria extends Controller
         {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'success',
-                'notif_message' => 'Berhasil update kriteria!',
+                'notif_message' => 'Berhasil update sub kriteria!',
             ]);
         }
         else
         {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'failed',
-                'notif_message' => 'Gagal update kriteria :( ',
+                'notif_message' => 'Gagal update sub kriteria :( ',
             ]);
         }
     }
@@ -80,14 +89,14 @@ class subKriteria extends Controller
         {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'success',
-                'notif_message' => 'Berhasil menghapus kriteria!',
+                'notif_message' => 'Berhasil menghapus sub kriteria!',
             ]);
         }
         else 
         {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'failed',
-                'notif_message' => 'Gagal menghapus kriteria :(',
+                'notif_message' => 'Gagal menghapus sub kriteria :(',
             ]);
         }
     }

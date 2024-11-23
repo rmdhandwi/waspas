@@ -50,13 +50,13 @@ let hapusForm = useForm({
 
 let kriteriaForm = useForm({
     id : null,
-    jenis : null,
     nama : null,
     nilai_bobot : null,
 })
 
 const lihatData = (index) =>
 {
+    kriteriaForm.clearErrors()
     showUbahForm.value = true
     kriteriaForm.id = dataFix.value[index-1]['id']
     kriteriaForm.jenis = dataFix.value[index-1]['jenis']
@@ -66,9 +66,7 @@ const lihatData = (index) =>
 
 const hapusData = (id, jenis) =>
 {
-
     hapusForm.id = id
-    hapusForm.jenis = jenis
 
     confirm.require({
         message: `Yakin ingin menghapus data kriteria : ${jenis} ?`,
@@ -83,10 +81,14 @@ const hapusData = (id, jenis) =>
             label: 'Hapus',
             severity: 'danger'
         },
+        reject : () => 
+        {
+            hapusForm.reset()
+        },
         accept: () => {
             hapusForm.post(`/super_admin/Kriteria/hapus/${id}`, 
             {
-                onSuccess : () => emit('refreshPage')
+                onSuccess : () => emit('refreshPage'),
             }
             )
         },
@@ -103,17 +105,22 @@ const updateData = (id) =>
         rejectProps: {
             label: 'Batal',
             severity: 'secondary',
-            outlined: true
+            outlined: true,
         },
         acceptProps: {
             label: 'Ya',
             severity: 'info'
         },
+        reject : () => 
+        {
+            kriteriaForm.reset()
+        },
         accept: () => {
             showUbahForm.value = false
             kriteriaForm.post(`/super_admin/Kriteria/update/${id}`, 
             {
-                onSuccess : () => emit('refreshPage')
+                onSuccess : () => emit('refreshPage'),
+                onError : () => showUbahForm.value = true
             }
             )
         },
@@ -126,26 +133,27 @@ const updateData = (id) =>
 <template>
     <!-- Dialog ubah data kriteria -->
      <Dialog modal header="Ubah Data Kriteria" :style="{width : '40rem'}" v-model:visible="showUbahForm">
-         <form @submit.prevent="updateData(kriteriaForm.id)" class="flex flex-col gap-y-2" autocomplete="off">
+         <form @submit.prevent="updateData(kriteriaForm.id)" class="flex flex-wrap items-center gap-x-[4rem]" autocomplete="off">
              <!-- data form -->
-             <div class="flex items-center gap-4 my-4">
-                 <label for="jenis" class="font-semibold w-40">Jenis</label>
-                 <InputText v-model="kriteriaForm.jenis" id="jenis" class="flex-auto" autocomplete="off" placeholder="Masukkan jenis" />
-             </div>
-     
-             <div class="flex items-center gap-4 my-4">
+             <div class="flex flex-col gap-4 my-4">
                  <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                 <InputText v-model="kriteriaForm.nama" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                 <InputText v-model="kriteriaForm.nama" :invalid="kriteriaForm.errors.nama?true:false"id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
+                 <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nama">
+                    {{ kriteriaForm.errors.nama }}
+                 </span>
              </div>
      
-             <div class="flex items-center gap-4 my-4">
+             <div class="flex flex-col gap-4 my-4">
                  <label for="nilai" class="font-semibold w-40">Nilai Bobot (%)</label>
-                 <InputNumber v-model="kriteriaForm.nilai_bobot" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                 <InputNumber v-model="kriteriaForm.nilai_bobot" class="flex-auto" :invalid="kriteriaForm.errors.nilai_bobot?true:false" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
+                 <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nilai_bobot">
+                    {{ kriteriaForm.errors.nilai_bobot }}
+                 </span>
              </div>
      
              <div class="flex justify-end gap-2">
-                 <Button type="button" label="Batal" outlined severity="danger" @click="showUbahForm = false, kriteriaForm.reset()"/>
-                 <Button type="submit" label="Simpan Data" outlined severity="info"/>
+                 <Button type="button" label="Batal" severity="danger" @click="showUbahForm = false, kriteriaForm.reset()"/>
+                 <Button type="submit" label="Simpan Data" severity="info"/>
              </div>
          </form>
      </Dialog>
@@ -153,7 +161,7 @@ const updateData = (id) =>
     <ConfirmDialog style="width: 24rem;"/>
     <Card>
         <template #content>
-            <DataTable v-model:filters="filters" ref="dt" :value="dataFix" paginator :rows="10">
+            <DataTable removableSort v-model:filters="filters" ref="dt" :value="dataFix" paginator :rows="10">
                 <template #header>
                     <div class="flex items-center justify-between">
                         <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" size="small"/>
