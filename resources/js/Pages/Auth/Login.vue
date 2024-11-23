@@ -5,7 +5,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
     username: '',
@@ -26,7 +26,6 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="username" value="Username" />
-
                 <TextInput
                     id="username"
                     type="text"
