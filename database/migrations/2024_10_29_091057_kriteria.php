@@ -12,11 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kriteria', function (Blueprint $table) {
-            $table->id()->primary();
-            $table->string('jenis');
-            $table->string('nama');
-            $table->integer('nilai_bobot');
-            $table->datetime('created_at');
+            $table->id();
+            $table->string('kode_kriteria', 5)->unique();
+            $table->string('nama_kriteria', 50);
+            $table->float('bobot');
+            $table->string('tipe', 8);
+            $table->timestamps();
         });
     }
 

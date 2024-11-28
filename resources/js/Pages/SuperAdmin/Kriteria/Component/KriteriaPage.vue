@@ -1,190 +1,304 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref } from "vue";
+import { useForm } from "@inertiajs/vue3";
+import { FilterMatchMode } from "@primevue/core/api";
+
 // import component
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import NavLink from '@/Components/NavLink.vue'
-import ConfirmDialog from 'primevue/confirmdialog'
-import { useConfirm } from "primevue/useconfirm"
-import { useForm } from '@inertiajs/vue3'
-import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import InputIcon from 'primevue/inputicon'
-import IconField from 'primevue/iconfield'
-import {FilterMatchMode} from '@primevue/core/api' 
+import {
+    Card,
+    DataTable,
+    Column,
+    Button,
+    ConfirmDialog,
+    useConfirm,
+    Dialog,
+    InputText,
+    InputNumber,
+    InputIcon,
+    IconField,
+    FloatLabel,
+    Message,
+    Select,
+} from "primevue";
 
+const props = defineProps({
+    dataKriteria: Object,
+});
 
-const props = defineProps({dataKriteria : Object})
+onMounted(() => {
+    dataFix.value = props.dataKriteria.map((item, index) => ({
+        index: index + 1,
+        persen: item.bobot + "%",
+        nama_kriteria_formatted: formatName(item.nama_kriteria), // Properti baru dengan nama diformat
+        ...item,
+    }));
+});
 
-onMounted(() =>
-{
-    dataFix.value = props.dataKriteria.map((p,i) => ({index : i+1, persen :  p.nilai_bobot + '%',...p}))
-})
-
-const emit = defineEmits(['refreshPage'])
+const emit = defineEmits(["refreshPage"]);
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-})
+});
 
-const exportCSV = () =>
-{
-    dt.value.exportCSV()
-}
+const exportCSV = () => {
+    dt.value.exportCSV();
+};
 
-let dt = ref()
+let dt = ref();
 
-let dataFix = ref([])
+let dataFix = ref([]);
 
-let showUbahForm = ref(false)
+let showUbahForm = ref(false);
 
-const confirm = useConfirm()
+const confirm = useConfirm();
 
 let hapusForm = useForm({
-    id : null,
-    jenis : null
-})
+    id: null,
+    kode_kriteria: null,
+    tipe: null,
+});
 
 let kriteriaForm = useForm({
-    id : null,
-    nama : null,
-    nilai_bobot : null,
-})
+    id: null,
+    nama: null,
+    tipe: null,
+    nilai_bobot: null,
+});
 
-const lihatData = (index) =>
-{
-    kriteriaForm.clearErrors()
-    showUbahForm.value = true
-    kriteriaForm.id = dataFix.value[index-1]['id']
-    kriteriaForm.jenis = dataFix.value[index-1]['jenis']
-    kriteriaForm.nama = dataFix.value[index-1]['nama']
-    kriteriaForm.nilai_bobot = dataFix.value[index-1]['nilai_bobot']
-}
+// Fungsi untuk memformat nama kolom
+const formatName = (columnName) => {
+    return columnName
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+};
 
-const hapusData = (id, jenis) =>
-{
-    hapusForm.id = id
+let tipe = [{ nama: "Cost" }, { nama: "Benefit" }];
+
+const lihatData = (index) => {
+    kriteriaForm.clearErrors();
+    showUbahForm.value = true;
+    kriteriaForm.id = dataFix.value[index - 1]["id"];
+    kriteriaForm.kode_kriteria = dataFix.value[index - 1]["kode_kriteria"];
+    kriteriaForm.nama = formatName(dataFix.value[index - 1]["nama_kriteria"]);
+    kriteriaForm.nilai_bobot = dataFix.value[index - 1]["bobot"];
+    kriteriaForm.tipe = dataFix.value[index - 1]["tipe"];
+};
+
+const hapusData = (id, kode_kriteria) => {
+    hapusForm.id = id;
 
     confirm.require({
-        message: `Yakin ingin menghapus data kriteria : ${jenis} ?`,
-        header: 'Peringatan',
-        icon: 'pi pi-exclamation-triangle',
+        message: `Yakin ingin menghapus data kriteria : ${kode_kriteria} ?`,
+        header: "Peringatan",
+        icon: "pi pi-exclamation-triangle",
         rejectProps: {
-            label: 'Batal',
-            severity: 'secondary',
-            outlined: true
-        },
-        acceptProps: {
-            label: 'Hapus',
-            severity: 'danger'
-        },
-        reject : () => 
-        {
-            hapusForm.reset()
-        },
-        accept: () => {
-            hapusForm.post(`/super_admin/Kriteria/hapus/${id}`, 
-            {
-                onSuccess : () => emit('refreshPage'),
-            }
-            )
-        },
-
-    })
-}
-
-const updateData = (id) => 
-{
-    confirm.require({
-        message: `Simpan Data ?`,
-        header: 'Peringatan',
-        icon: 'pi pi-exclamation-triangle',
-        rejectProps: {
-            label: 'Batal',
-            severity: 'secondary',
+            label: "Batal",
+            severity: "secondary",
             outlined: true,
         },
         acceptProps: {
-            label: 'Ya',
-            severity: 'info'
+            label: "Hapus",
+            severity: "danger",
         },
-        reject : () => 
-        {
-            kriteriaForm.reset()
+        reject: () => {
+            hapusForm.reset();
         },
         accept: () => {
-            showUbahForm.value = false
-            kriteriaForm.post(`/super_admin/Kriteria/update/${id}`, 
-            {
-                onSuccess : () => emit('refreshPage'),
-                onError : () => showUbahForm.value = true
-            }
-            )
+            hapusForm.delete(route("DeleteKriteria", hapusForm.id), {
+                onSuccess: () => emit("refreshPage"),
+            });
         },
+    });
+};
 
-    })
-}
-
+const updateData = (id) => {
+    confirm.require({
+        message: `Simpan Data ?`,
+        header: "Peringatan",
+        icon: "pi pi-exclamation-triangle",
+        rejectProps: {
+            label: "Batal",
+            severity: "secondary",
+            outlined: true,
+        },
+        acceptProps: {
+            label: "Ya",
+            severity: "info",
+        },
+        reject: () => {
+            kriteriaForm.reset();
+        },
+        accept: () => {
+            showUbahForm.value = false;
+            kriteriaForm.put(route("UpdateKriteria", kriteriaForm.id), {
+                onSuccess: () => emit("refreshPage"),
+                onError: () => (showUbahForm.value = true),
+            });
+        },
+    });
+};
 </script>
 
 <template>
     <!-- Dialog ubah data kriteria -->
-     <Dialog modal header="Ubah Data Kriteria" :style="{width : '40rem'}" v-model:visible="showUbahForm">
-         <form @submit.prevent="updateData(kriteriaForm.id)" class="flex flex-wrap items-center gap-x-[4rem]" autocomplete="off">
-             <!-- data form -->
-             <div class="flex flex-col gap-4 my-4">
-                 <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                 <InputText v-model="kriteriaForm.nama" :invalid="kriteriaForm.errors.nama?true:false"id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
-                 <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nama">
+    <Dialog
+        modal
+        header="Ubah Data Kriteria"
+        :style="{ width: '25rem' }"
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        v-model:visible="showUbahForm"
+    >
+        <form
+            @submit.prevent="updateData(kriteriaForm.id)"
+            class="flex flex-col gap-4 mt-1"
+            autocomplete="off"
+        >
+            <!-- Data form -->
+            <div>
+                <FloatLabel variant="on" class="w-full">
+                    <InputText
+                        fluid
+                        v-model="kriteriaForm.nama"
+                        id="nama"
+                        autocomplete="off"
+                        :invalid="!!kriteriaForm.errors.nama"
+                    />
+                    <label for="nama">Nama Kriteria</label>
+                </FloatLabel>
+                <Message
+                    v-if="kriteriaForm.errors.nama"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                >
                     {{ kriteriaForm.errors.nama }}
-                 </span>
-             </div>
-     
-             <div class="flex flex-col gap-4 my-4">
-                 <label for="nilai" class="font-semibold w-40">Nilai Bobot (%)</label>
-                 <InputNumber v-model="kriteriaForm.nilai_bobot" class="flex-auto" :invalid="kriteriaForm.errors.nilai_bobot?true:false" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
-                 <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nilai_bobot">
+                </Message>
+            </div>
+
+            <div>
+                <FloatLabel variant="on" class="w-full">
+                    <InputNumber
+                        fluid
+                        v-model="kriteriaForm.nilai_bobot"
+                        inputId="nilai"
+                        mode="decimal"
+                        showButtons
+                        :min="0"
+                        :max="100"
+                        :invalid="!!kriteriaForm.errors.nilai_bobot"
+                    />
+                    <label for="nilai">Nilai Bobot (%)</label>
+                </FloatLabel>
+                <Message
+                    v-if="kriteriaForm.errors.nilai_bobot"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                >
                     {{ kriteriaForm.errors.nilai_bobot }}
-                 </span>
-             </div>
-     
-             <div class="flex justify-end gap-2">
-                 <Button type="button" label="Batal" severity="danger" @click="showUbahForm = false, kriteriaForm.reset()"/>
-                 <Button type="submit" label="Simpan Data" severity="info"/>
-             </div>
-         </form>
-     </Dialog>
+                </Message>
+            </div>
+
+            <div>
+                <FloatLabel variant="on">
+                    <Select
+                        id="tipe"
+                        v-model="kriteriaForm.tipe"
+                        :options="tipe"
+                        optionLabel="nama"
+                        optionValue="nama"
+                        fluid
+                        :invalid="!!kriteriaForm.errors.tipe"
+                    />
+                    <label for="type">Type</label>
+                </FloatLabel>
+                <Message
+                    v-if="kriteriaForm.errors.tipe"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                >
+                    {{ kriteriaForm.errors.tipe }}
+                </Message>
+            </div>
+
+            <!-- Tombol aksi -->
+            <div class="flex justify-end gap-2">
+                <Button
+                    type="button"
+                    label="Batal"
+                    severity="danger"
+                    @click="(showUbahForm = false), kriteriaForm.reset()"
+                />
+                <Button type="submit" label="Simpan Data" severity="info" />
+            </div>
+        </form>
+    </Dialog>
     <!-- Dialog ubah data kriteria selesai -->
-    <ConfirmDialog style="width: 24rem;"/>
+    <ConfirmDialog style="width: 24rem" />
     <Card>
         <template #content>
-            <DataTable removableSort v-model:filters="filters" ref="dt" :value="dataFix" paginator :rows="10">
+            <DataTable
+                removableSort
+                v-model:filters="filters"
+                ref="dt"
+                :value="dataFix"
+                paginator
+                :rows="10"
+            >
                 <template #header>
                     <div class="flex items-center justify-between">
-                        <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" size="small"/>
+                        <Button
+                            icon="pi pi-external-link"
+                            label="Export"
+                            @click="exportCSV($event)"
+                            size="small"
+                        />
                         <IconField>
                             <InputIcon>
                                 <i class="pi pi-search me-4" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" placeholder="Cari Data Kriteria" />
+                            <InputText
+                                v-model="filters['global'].value"
+                                placeholder="Cari Data Kriteria"
+                            />
                         </IconField>
                     </div>
                 </template>
                 <template #empty>
-                    <span class="flex justify-center items-center text-lg">Tidak ada data</span>
+                    <span class="flex justify-center items-center text-lg"
+                        >Tidak ada data</span
+                    >
                 </template>
-                <Column sortable field="index" header="No"/>
-                <Column sortable field="jenis" header="Id Kriteria"/>
-                <Column sortable field="nama" header="Nama Kriteria"/>
-                <Column sortable field="persen" header="Nilai Bobot"/>
+                <Column sortable field="index" header="No" />
+                <Column sortable field="kode_kriteria" header="Id Kriteria" />
+                <Column
+                    sortable
+                    field="nama_kriteria_formatted"
+                    header="Nama Kriteria"
+                />
+                <Column sortable field="persen" header="Nilai Bobot" />
+                <Column sortable field="tipe" header="jenis" />
                 <Column header="Opsi">
-                    <template #body="{data}">
+                    <template #body="{ data }">
                         <div class="flex gap-2 items-center">
-                            <Button size="small" @click="lihatData(data.index)" icon="pi pi-pen-to-square" iconPos="right" severity="info" outlined/>
-                            <Button size="small" @click="hapusData(data.id, data.jenis)" icon="pi pi-trash" iconPos="right" severity="danger" outlined/>
+                            <Button
+                                size="small"
+                                @click="lihatData(data.index)"
+                                icon="pi pi-pen-to-square"
+                                iconPos="right"
+                                severity="info"
+                                outlined
+                            />
+                            <Button
+                                size="small"
+                                @click="hapusData(data.id, data.kode_kriteria)"
+                                icon="pi pi-trash"
+                                iconPos="right"
+                                severity="danger"
+                                outlined
+                            />
                         </div>
                     </template>
                 </Column>
@@ -193,5 +307,4 @@ const updateData = (id) =>
     </Card>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

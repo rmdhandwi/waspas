@@ -1,28 +1,74 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+
+import GuestLayout from "@/Layouts/GuestLayout.vue";
+import InputError from "@/Components/InputError.vue";
+import InputLabel from "@/Components/InputLabel.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import TextInput from "@/Components/TextInput.vue";
+import { onMounted, ref } from "vue";
+import { Head, useForm, router } from "@inertiajs/vue3";
+import { Toast, useToast } from "primevue";
+
+onMounted(() => {
+    checkNotif();
+});
+
+const props = defineProps({
+    flash: Object,
+});
+
+const toast = useToast();
+
+const checkNotif = () => {
+    if (props.flash.notif_status) {
+        setTimeout(() => {
+            if (props.flash.notif_status === "success") {
+                toast.add({
+                    severity: "success",
+                    summary: "Info",
+                    detail: props.flash.notif_message,
+                    life: 4000,
+                    group: "tc",
+                });
+            } else {
+                toast.add({
+                    severity: "error",
+                    summary: "Info",
+                    detail: props.flash.notif_message,
+                    life: 4000,
+                    group: "tc",
+                });
+            }
+        }, 1000);
+    }
+};
+
+const isLoading = ref(false);
+
+const refreshPage = () => {
+    checkNotif();
+    isLoading.value = true;
+    router.visit(route("login"));
+    setTimeout(() => (isLoading.value = false), 600);
+};
 
 const form = useForm({
-    username: '',
-    password: '',
-    role : '',
+    username: "",
+    password: "",
     remember: false,
 });
 
 const submit = () => {
-    form.post('login'); 
+    form.post(route("loginSubmit"), {
+        onSuccess: () => refreshPage(),
+    });
 };
 </script>
 
 <template>
     <GuestLayout>
         <Head title="Log in" />
-
+        <Toast position="top-center" group="tc" />
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="username" value="Username" />
@@ -51,25 +97,6 @@ const submit = () => {
                 />
 
                 <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="role"/>
-                <select class="w-full block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" v-model="form.role" id="role">
-                    <option value="" selected disabled>Pilih Role</option>
-                    <option value="super_admin" selected>Super Admin</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <InputError class="mt-2" :message="form.errors.role" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
-                    >
-                </label>
             </div>
 
             <div class="mt-4 flex items-center justify-end">

@@ -20,42 +20,30 @@ class DataWarga extends Controller
     public function simpanDataWarga(Request $req)
     {
         $req->validate([
-            "nomor_kk"=> 'required|unique:data_warga,nomor_kk',
-            "nama_kk"=> 'required|unique:data_warga,nama_kk',
-            "no_rt"=> 'required|numeric',
-            "no_rw"=> 'required|numeric',
-            "asal_suku"=> 'required',
-            "pekerjaan"=> 'required',
-            "agama"=> 'required',
-            "jenis_kelamin"=> 'required',
-            "sanitasi"=> 'required',
-            "j_kloset"=> 'required',
-            "t_limbah"=> 'required',
-            "akses_air_minum"=> 'required',
-            "status_rumah"=> 'required',
-            "struktur_bangunan"=> 'required'
+            "nomor_kk" => 'required|numeric|max:18|unique:data_warga,nomor_kk',
+            "nama_kk" => 'required|unique:data_warga,nama_kk',
+            "no_rt" => 'required|numeric',
+            "no_rw" => 'required|numeric',
+            "asal_suku" => 'required',
+            "pekerjaan" => 'required',
+            "lahan" => 'required',
+            "legalitas_lahan" => 'required',
+            "jmlh_penghasilan" => 'required',
+            "jmlh_keluarga" => 'required|numeric',
+            "agama" => 'required',
+            "jenis_kelamin" => 'required',
+            "sanitasi" => 'required',
+            "j_kloset" => 'required',
+            "t_limbah" => 'required',
+            "akses_air_minum" => 'required',
+            "status_rumah" => 'required',
+            "struktur_bangunan" => 'required'
         ], [
             '*.required' => 'Kolom Wajib Diisi',
             'nomor_kk.unique' => 'Nomor KK Sudah Terdaftar',
+            'nomor_kk.max' => 'Maksimal 18 karakter',
             'nama_kk.unique' => 'Nama Kepala Keluarga Sudah Terdaftar',
             '*.numeric' => 'Kolom Wajib Berisi Angka'
-            // 'nomor_kk.required' => 'Harap isi Nomor KK',
-            // 'nomor_kk.unique' => 'Nomor KK Telah Terdaftar',
-            // 'nama_kk.required' => 'Harap isi Nama Kepala Keluarga',
-            // 'no_rt.required' => 'Harap isi Nomor RT',
-            // 'no_rt.numeric' => 'RT harus berupa angka',
-            // 'no_rw.required' => 'Harap isi Nomor RW',
-            // 'no_rw.numeric' => 'RW harus berupa angka',
-            // 'asal_suku.required' => 'Harap isi Asal Suku',
-            // 'pekerjaan.required' => 'Harap isi Pekerjaan',
-            // 'agama.required' => 'Harap isi Agama',
-            // 'jenis_kelamin.required' => 'Harap isi Jenis Kelamin',
-            // 'sanitasi.required' => 'Harap isi Sanitasi',
-            // 'j_kloset.required' => 'Harap isi Jenis Kloset',
-            // 't_limbah.required' => 'Harap isi Tempat Pembuangan Limbah Tinja',
-            // 'akses_air_minum.required' => 'Harap isi Akses Air Minum',
-            // 'status_rumah.required' => 'Harap isi Status Kepemilikan Rumah',
-            // 'struktur_bangunan.required' => 'Harap isi Struktur Bangunan',
         ]);
 
         $insert = ModelsDataWarga::create([
@@ -64,9 +52,13 @@ class DataWarga extends Controller
             'provinsi' => $req->provinsi,
             'kabupaten' => $req->kabupaten,
             'kampung' => $req->kampung,
+            "lahan" => $req->lahan,
+            "legalitas_lahan" => $req->legalitas_lahan,
+            "jmlh_penghasilan" => $req->jmlh_penghasilan,
+            "jmlh_keluarga" => $req->jmlh_keluarga,
             'asal_suku' => $req->asal_suku,
-            'pekerjaan' => substr($req->pekerjaan,0,8),
-            'agama' => substr($req->agama,0,2),
+            'pekerjaan' => substr($req->pekerjaan, 0, 8),
+            'agama' => substr($req->agama, 0, 2),
             'jenis_kelamin' => $req->jenis_kelamin,
             'sanitasi' => $req->sanitasi,
             'j_kloset' => $req->j_kloset,
@@ -79,15 +71,12 @@ class DataWarga extends Controller
             'created_at' => Carbon::now('Asia/Jayapura')
         ]);
 
-        if($insert)
-        {
+        if ($insert) {
             return redirect()->route('admin.data_warga')->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Berhasil menambahkan data rumah tangga warga!',
             ]);
-        }
-        else
-        {
+        } else {
             return redirect()->route('admin.data_warga')->with([
                 'notif_status' => 'error',
                 'notif_message' => 'Gagal menambahkan data rumah tangga :( ',
@@ -97,37 +86,49 @@ class DataWarga extends Controller
 
     public function updateDataWarga(Request $req)
     {
+        // Validate the request
         $req->validate([
-            "nomor_kk"=> 'required|unique:data_warga,nomor_kk,'. $req->id,
-            "nama_kk"=> 'required|unique:data_warga,nama_kk,'. $req->id,
-            "no_rt"=> 'required|numeric',
-            "no_rw"=> 'required|numeric',
-            "asal_suku"=> 'required',
-            "pekerjaan"=> 'required',
-            "agama"=> 'required',
-            "jenis_kelamin"=> 'required',
-            "sanitasi"=> 'required',
-            "j_kloset"=> 'required',
-            "t_limbah"=> 'required',
-            "akses_air_minum"=> 'required',
-            "status_rumah"=> 'required',
-            "struktur_bangunan"=> 'required'
+            "nomor_kk" => 'required|numeric|max:18|unique:data_warga,nomor_kk,' . $req->id,
+            "nama_kk" => 'required|unique:data_warga,nama_kk,' . $req->id,
+            "no_rt" => 'required|numeric',
+            "no_rw" => 'required|numeric',
+            "asal_suku" => 'required',
+            "pekerjaan" => 'required',
+            "agama" => 'required',
+            "jenis_kelamin" => 'required',
+            "lahan" => 'required',
+            "legalitas_lahan" => 'required',
+            "jmlh_penghasilan" => 'required',
+            "jmlh_keluarga" => 'required|numeric',
+            "sanitasi" => 'required',
+            "j_kloset" => 'required',
+            "t_limbah" => 'required',
+            "akses_air_minum" => 'required',
+            "status_rumah" => 'required',
+            "struktur_bangunan" => 'required'
         ], [
             '*.required' => 'Kolom Wajib Diisi',
             'nomor_kk.unique' => 'Nomor KK Sudah Terdaftar',
+            'nomor_kk.max' => 'Maksimal 18 karakter',
             'nama_kk.unique' => 'Nama Kepala Keluarga Sudah Terdaftar',
             '*.numeric' => 'Kolom Wajib Berisi Angka'
         ]);
 
-        $update = ModelsDataWarga::where('id', $req->id)->update([
+        $currentData = ModelsDataWarga::find($req->id);
+
+        $updatedData = [
             'nomor_kk' => $req->nomor_kk,
             'nama_kk' => $req->nama_kk,
             'provinsi' => $req->provinsi,
             'kabupaten' => $req->kabupaten,
             'kampung' => $req->kampung,
             'asal_suku' => $req->asal_suku,
-            'pekerjaan' => substr($req->pekerjaan,0,8),
-            'agama' => substr($req->agama,0,2),
+            'jmlh_keluarga' => $req->jmlh_keluarga,
+            'jmlh_penghasilan' => $req->jmlh_penghasilan,
+            'lahan' => $req->lahan,
+            "legalitas_lahan" => $req->legalitas_lahan,
+            'pekerjaan' => substr($req->pekerjaan, 0, 8),
+            'agama' => substr($req->agama, 0, 2),
             'jenis_kelamin' => $req->jenis_kelamin,
             'sanitasi' => $req->sanitasi,
             'j_kloset' => $req->j_kloset,
@@ -137,36 +138,43 @@ class DataWarga extends Controller
             'struktur_bangunan' => $req->struktur_bangunan,
             'rt' => $req->no_rt,
             'rw' => $req->no_rw,
-        ]);
+        ];
 
-        if($update)
-        {
+
+        $hasChanges = array_diff_assoc($updatedData, $currentData->toArray());
+
+
+        if (!empty($hasChanges)) {
+            $update = $currentData->update($updatedData);
+        } else {
+
+            $update = true;
+        }
+
+
+        if ($update) {
             return redirect()->route('admin.data_warga')->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Berhasil update data rumah tangga warga!',
             ]);
-        }
-        else
-        {
+        } else {
             return redirect()->route('admin.data_warga')->with([
                 'notif_status' => 'error',
-                'notif_message' => 'Gagal update data rumah tangga :( ',
+                'notif_message' => 'Gagal update data rumah tangga :(',
             ]);
         }
     }
 
+
     public function hapusDataWarga(Request $req)
     {
         $update = ModelsDataWarga::find($req->id)->delete();
-        if($update)
-        {
+        if ($update) {
             return redirect()->route('admin.data_warga')->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Berhasil hapus data rumah tangga warga!',
             ]);
-        }
-        else
-        {
+        } else {
             return redirect()->route('admin.data_warga')->with([
                 'notif_status' => 'error',
                 'notif_message' => 'Gagal hapus data rumah tangga :( ',

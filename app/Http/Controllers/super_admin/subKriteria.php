@@ -14,30 +14,31 @@ class subKriteria extends Controller
     {
         $req->validate([
             'nama' => 'required',
-            'nilai_bobot' => 'required|numeric',
+            'nilai_bobot' => 'required|numeric|max:5',
             'id_relasi' => 'required',
-        ],[
+        ], [
             '*.required' => 'Kolom Wajib Diisi',
             '*.numeric' => 'Kolom Wajib Berupa Angka',
+            'nilai_bobot.max' => 'Nilai Maksimal 5',
         ]);
 
+        // Mengubah nama kriteria menjadi huruf kecil dan mengganti spasi dengan garis bawah
+        $namaSubKriteriaFormat = strtolower(str_replace(' ', '_', $req->nama));
+
         $insert = ModelsSubKriteria::create([
-            'nama_sub' => $req->nama,
-            'nilai_bobot' => $req->nilai_bobot,
-            'id_kriteria' => $req->id_relasi,
+            'nama_subkriteria' => $namaSubKriteriaFormat,
+            'nilai' => $req->nilai_bobot,
+            'kriteria_id' => $req->id_relasi,
             'created_at' => Carbon::now('Asia/Jayapura')
         ]);
 
-        if($insert)
-        {
+        if ($insert) {
             return redirect()->back()->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Berhasil menambahkan sub kriteria!',
                 'is_kriteria' => false
             ]);
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with([
                 'notif_status' => 'failed',
                 'notif_message' => 'Gagal menambahkan sub kriteria :( ',
@@ -50,30 +51,31 @@ class subKriteria extends Controller
     {
         $req->validate([
             'nama_sub' => 'required',
-            'nilai_bobot' => 'required|numeric',
+            'nilai_bobot' => 'required|numeric|max:5',
             'id_relasi' => 'required',
         ], [
             '*.required' => 'Kolom Wajib Diisi',
             '*.numeric' => 'Kolom Wajib Berupa Angka',
+            'nilai_bobot.max' => 'Nilai maksimal 5',
         ]);
 
+        // Mengubah nama kriteria menjadi huruf kecil dan mengganti spasi dengan garis bawah
+        $namaSubKriteriaFormat = strtolower(str_replace(' ', '_', $req->nama_sub));
+
         $updateData = [
-            'nama_sub' => $req->nama_sub,
-            'nilai_bobot' => $req->nilai_bobot,
-            'id_kriteria' => $req->id_relasi,
+            'nama_subkriteria' => $namaSubKriteriaFormat,
+            'nilai' => $req->nilai_bobot,
+            'kriteria_id' => $req->id_relasi,
         ];
 
         $insert = ModelsSubKriteria::where('id', $req->id)->update($updateData);
 
-        if($insert)
-        {
+        if ($insert) {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Berhasil update sub kriteria!',
             ]);
-        }
-        else
-        {
+        } else {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'failed',
                 'notif_message' => 'Gagal update sub kriteria :( ',
@@ -85,15 +87,12 @@ class subKriteria extends Controller
     {
         $user = ModelsSubKriteria::find($req->id)->delete();
 
-        if($user)
-        {
+        if ($user) {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Berhasil menghapus sub kriteria!',
             ]);
-        }
-        else 
-        {
+        } else {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'failed',
                 'notif_message' => 'Gagal menghapus sub kriteria :(',

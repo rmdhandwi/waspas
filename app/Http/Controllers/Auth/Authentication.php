@@ -22,40 +22,67 @@ class Authentication extends Controller
      */
     public function store(Request $request)
     {
+        // Validate the input credentials (excluding role)
         $credentials = $request->validate([
             'username' => ['required'],
             'password' => ['required'],
-            'role' => ['required'],
         ]);
-        
-        if(Auth::attempt($credentials))
-        {
+
+
+        if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']])) {
+
+            // Cek role
+            $userRole = auth()->user()->role;
+
             $notification = [
                 'notif_status' => 'success',
-                'message' => 'Selamat Datang, '.auth()->user()->nama,
-                'notif_show' => true,
+                'notif_message' => 'Selamat Datang, ' . auth()->user()->username,
+                'is_login' => true,
             ];
 
             $request->session()->regenerate();
 
-            switch($request->role)
-            {
-                case 'super_admin' : return redirect()->route('super_admin.dashboard')->with($notification);
-                break;
-                case 'admin' : return redirect()->route('admin.dashboard')->with($notification);
-                break;
-            };
+
+            switch ($userRole) {
+                case 'super_admin':
+                    return redirect()->route('super_admin.dashboard')->with($notification);
+                case 'admin':
+                    return redirect()->route('admin.dashboard')->with($notification);
+                default:
+                    Auth::logout();
+                    $errorNotification = [
+                        'notif_status' => 'error',
+                        'notif_message' => 'Role tidak valid atau tidak diizinkan.',
+                        'is_login' => true,
+                    ];
+                    return redirect()->route('login')->with($errorNotification);
+            }
         }
-        else
-        {
-            return response('terjadi kesalahan!',200);
-        }
+
+        $errorNotification = [
+            'notif_status' => 'error',
+            'notif_message' => 'Username atau password salah!',
+            'is_login' => true,
+        ];
+
+        // Redirect back to the login page with an error notification
+        return redirect()->route('login')->with($errorNotification);
     }
 
-    public function destroy()
-    {
+
+
+    public function destroy(Request $request)
+    { // Logout pengguna dan hapus session
         Auth::logout();
-        Session::flush();
-        return redirect()->route('login');
+
+        $request->session()->invalidate();  // Menghancurkan session
+        $request->session()->regenerateToken();  // Mengganti token CSRF untuk keamanan
+
+        // Redirect ke halaman login dengan notifikasi
+        return redirect()->route('login')->with([
+            'notif_status'  => 'success',
+            'notif_message' => 'Anda telah logout.',
+            'is_logout'    => true,
+        ]);
     }
 }

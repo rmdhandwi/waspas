@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
-        Schema::table('users', function (Blueprint $table) {
-            //
-            $table->text('alamat')->nullable()->change();
+        Schema::create('periode', function (Blueprint $table) {
+            $table->id(); 
+            $table->string('tahun', 4)->unique();
+            $table->timestamps();
         });
     }
 
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('periode');
     }
 };

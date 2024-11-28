@@ -1,34 +1,39 @@
 <script setup>
-import { Head, router } from '@inertiajs/vue3'
+import { Head } from "@inertiajs/vue3";
 // import layout
-import Layout from '@/Layouts/TemplateLayout.vue'
-import { onMounted , useAttrs } from 'vue'
-import Card from 'primevue/card'
-import Button from 'primevue/button'
-const pageAttrs = useAttrs()
+import Layout from "@/Layouts/TemplateLayout.vue";
+import { Card, Button } from "primevue";
 
+// Props and attributes setup
 const pageProps = defineProps({
-    countKriteria : Number,
-    countUsers : Number,
-})
+    countKriteria: Number,
+    countUsers: Number,
+    flash: Object,
+    auth: Object,
+});
 
-onMounted(() =>
-{
-    localStorage.setItem('username', pageAttrs.auth.user.username)
-    localStorage.setItem('role', pageAttrs.auth.user.role)
-})
+const auth = pageProps.auth;
 </script>
 
 <template>
-    <Head title="Dashboard"/>
-    <Layout>
+    <Head title="Dashboard" />
+    <Layout :auth="auth">
         <template #pageContent>
             <div class="flex w-full gap-x-[2rem] items-center">
+                <!-- Card for Kriteria -->
                 <Button as="a" :href="route('super_admin.kriteria')" unstyled>
-                    <Card class="w-[18rem] p-6 rounded-md shadow-md bg-green-400" unstyled>
+                    <Card
+                        class="w-[18rem] p-6 rounded-md shadow-md bg-green-400"
+                        unstyled
+                    >
                         <template #content>
-                            <div class="flex justify-between items-center text-white">
-                                <i class="pi pi-users" style="font-size: 2rem;"></i>
+                            <div
+                                class="flex justify-between items-center text-white"
+                            >
+                                <i
+                                    class="pi pi-users"
+                                    style="font-size: 2rem"
+                                ></i>
                                 <div class="flex flex-col items-center">
                                     <h1>Kriteria</h1>
                                     <h1>{{ pageProps.countKriteria }}</h1>
@@ -38,11 +43,20 @@ onMounted(() =>
                     </Card>
                 </Button>
 
+                <!-- Card for Users -->
                 <Button as="a" :href="route('super_admin.kriteria')" unstyled>
-                    <Card class="w-[18rem] p-6 rounded-md shadow-md bg-blue-400" unstyled>
+                    <Card
+                        class="w-[18rem] p-6 rounded-md shadow-md bg-blue-400"
+                        unstyled
+                    >
                         <template #content>
-                            <div class="flex justify-between items-center text-white">
-                                <i class="pi pi-users" style="font-size: 2rem;"></i>
+                            <div
+                                class="flex justify-between items-center text-white"
+                            >
+                                <i
+                                    class="pi pi-users"
+                                    style="font-size: 2rem"
+                                ></i>
                                 <div class="flex flex-col items-center">
                                     <h1>Users</h1>
                                     <h1>{{ pageProps.countUsers }}</h1>
@@ -56,5 +70,4 @@ onMounted(() =>
     </Layout>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

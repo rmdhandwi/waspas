@@ -5,8 +5,8 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.js',
-            ssr: 'resources/js/ssr.js',
+            input: "resources/js/app.js",
+            ssr: "resources/js/ssr.js",
             refresh: true,
         }),
         vue({
@@ -16,6 +16,12 @@ export default defineConfig({
                     includeAbsolute: false,
                 },
             },
+            // resolve: {
+            //     alias: {
+            //         // Ensure PrimeVue resolves correctly
+            //         primevue: "/node_modules/primevue",
+            //     },
+            // },
         }),
     ],
 });

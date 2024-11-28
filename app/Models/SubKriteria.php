@@ -2,43 +2,56 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SubKriteria extends Model
 {
-    //
+    use HasFactory;
     public $timestamps = false;
-    protected   $table = 'sub_kriteria',
-                $primaryKey = 'id',
-                $fillable = ['id','jenis_sub','nama_sub','nilai_bobot','id_kriteria','created_at'];
-    
+    protected   $table = 'subkriteria',
+        $primaryKey = 'id',
+        $fillable = [
+            'id',
+            'kriteria_id',
+            'kode_sub',
+            'nama_subkriteria',
+            'nilai',
+            'created_at',
+            'updated_at'
+        ];
+
     public function kriteria()
     {
-        return $this->hasMany(Kriteria::class, 'id_kriteria');
+        return $this->belongsTo(Kriteria::class, 'kriteria_id');
     }
 
     protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($subJenis) {
-            $subJenis->jenis_sub = self::generateSubKriteria();
+        static::creating(function ($kodeSub) {
+            $kodeSub->kode_sub = self::generateSubKriteria();
         });
     }
 
     public static function generatesubKriteria()
     {
-        // Ambil kode terakhir dari tabel kriteria
-        $lastsubKriteria = self::orderBy('jenis_sub', 'desc')->first();
+        // Ambil kode terakhir dari tabel sub-kriteria berdasarkan kode_sub
+        $lastsubKriteria = self::orderBy('kode_sub', 'desc')->first();
 
-        // Jika ada data sebelumnya, ambil nomor berikutnya
+        // Jika tidak ada data sebelumnya, mulai dari 'SUB-01'
         if (!$lastsubKriteria) {
-            return 'SUB-01'; // Mengambil nomor setelah C
+            return 'SUB-01';
         }
-        $lastNumber = intval(substr($lastsubKriteria->jenis_sub, 4));
 
+        // Ambil angka dari kode terakhir dan konversi ke integer
+        $lastNumber = intval(substr($lastsubKriteria->kode_sub, 4));
+
+        // Tambahkan 1 untuk mendapatkan nomor baru
         $newNumber = $lastNumber + 1;
-        // Buat kode baru
-        return 'SUB-' . str_pad($newNumber, 2, '0', $newNumber);
+
+        // Buat kode baru dengan padding angka menjadi dua digit
+        return 'SUB-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
     }
 }

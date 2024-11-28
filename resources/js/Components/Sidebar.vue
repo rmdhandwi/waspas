@@ -1,17 +1,20 @@
 <script setup>
-import { ref } from 'vue'
-import NavLink from '@/Components/NavLink.vue'
-import Button from 'primevue/button'
-import Image from 'primevue/image'
-import ImgSrc from '../../img/super_admin_profile.jpg'
+import NavLink from "@/Components/NavLink.vue";
+import Button from "primevue/button";
+import Image from "primevue/image";
+import ImgSrc from "../../img/super_admin_profile.jpg";
 
-const roleUser = localStorage.role|| ref(null)
+const props = defineProps({
+    auth: Object,
+});
 
-const deleteLocalStorage = () =>  setTimeout(() => { localStorage.clear()},1000)
+const roleUser = props.auth.user.role;
 </script>
 
 <template>
-    <div class="min-h-[98vh] w-[200px] justify-between p-2 flex flex-col bg-gray-100 rounded-lg fixed">
+    <div
+        class="min-h-[98vh] w-[200px] justify-between p-2 flex flex-col bg-gray-100 rounded-lg fixed"
+    >
         <div class="flex flex-col gap-[2rem]">
             <!-- header -->
             <div class="size-full p-2">
@@ -23,38 +26,79 @@ const deleteLocalStorage = () =>  setTimeout(() => { localStorage.clear()},1000)
             <!-- header selesai -->
 
             <!-- side menu super admin-->
-            <div class="flex flex-col gap-[1.8rem] items-start px-2" v-if="roleUser === 'super_admin'">
-                <NavLink :href="route('super_admin.dashboard')" :active="route().current('super_admin.dashboard')">
+            <div
+                class="flex flex-col gap-[1.8rem] items-start px-2"
+                v-if="roleUser === 'super_admin'"
+            >
+                <NavLink
+                    :href="route('super_admin.dashboard')"
+                    :active="route().current('super_admin.dashboard')"
+                >
                     <i class="pi pi-home"></i><span>Dashboard</span>
                 </NavLink>
-                <NavLink :href="route('super_admin.pengguna')" :active="route().current(
-                    'super_admin.pengguna') || route().current('super_admin.view.pengguna')">
+                <NavLink
+                    :href="route('super_admin.pengguna')"
+                    :active="
+                        route().current('super_admin.pengguna') ||
+                        route().current('super_admin.view.pengguna')
+                    "
+                >
                     <i class="pi pi-users"></i><span>Pengguna</span>
                 </NavLink>
-                <NavLink :href="route('super_admin.kriteria')" :active="route().current(
-                    'super_admin.kriteria') || route().current('super_admin.view.sub_kriteria')">
+                <NavLink
+                    :href="route('periode')"
+                    :active="route().current('periode')"
+                >
+                    <i class="pi pi-calendar"></i><span>Periode</span>
+                </NavLink>
+
+                <NavLink
+                    :href="route('super_admin.kriteria')"
+                    :active="
+                        route().current('super_admin.kriteria') ||
+                        route().current('super_admin.view.sub_kriteria')
+                    "
+                >
                     <i class="pi pi-file"></i><span>Kriteria</span>
                 </NavLink>
-                
-                <NavLink :href="route('super_admin.dashboard')">
-                    <i class="pi pi-inbox"></i><span>Hasil Seleksi</span>
+
+                <NavLink
+                    :href="route('wargapage')"
+                    :active="route().current('wargapage')"
+                >
+                    <i class="pi pi-inbox"></i><span>Data Warga</span>
                 </NavLink>
             </div>
 
             <!-- side menu admin-->
-            <div class="flex flex-col gap-[1.8rem] items-start px-2" v-else-if="roleUser === 'admin'">
-                <NavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
+            <div
+                class="flex flex-col gap-[1.8rem] items-start px-2"
+                v-else-if="roleUser === 'admin'"
+            >
+                <NavLink
+                    :href="route('admin.dashboard')"
+                    :active="route().current('admin.dashboard')"
+                >
                     <i class="pi pi-home"></i><span>Dashboard</span>
                 </NavLink>
-                <NavLink :href="route('admin.data_warga')" :active="route().current('admin.data_warga')">
-                    <i class="pi pi-users"></i><span>Data Rumah Tangga Warga</span>
+                <NavLink
+                    :href="route('wargapage')"
+                    :active="route().current('wargapage')"
+                >
+                    <i class="pi pi-users"></i><span>Data Warga</span>
                 </NavLink>
             </div>
         </div>
-        <Button as="a" severity="danger" @click="deleteLocalStorage()" label="logout" icon="pi pi-power-off" :href="route('logout')" />
+        <Button
+            as="a"
+            severity="danger"
+            @click="deleteLocalStorage()"
+            label="logout"
+            icon="pi pi-power-off"
+            :href="route('logout')"
+        />
         <!-- side menu selesai -->
     </div>
 </template>
 
-<style scoped>
-</style>    
+<style scoped></style>

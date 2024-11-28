@@ -1,196 +1,401 @@
 <script setup>
-import { onMounted,ref } from 'vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
+import { onMounted, ref } from "vue";
+import { Head, router, useForm } from "@inertiajs/vue3";
 // import layout
-import Layout from '@/Layouts/TemplateLayout.vue'
+import Layout from "@/Layouts/TemplateLayout.vue";
 
 // import component
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import Select from 'primevue/select'
-import Toast from 'primevue/toast'
-import { useToast } from "primevue/usetoast"
+import kriteriaComp from "./Component/KriteriaPage.vue";
+import subKriteriaComp from "./Component/SubKriteriaPage.vue";
+import {
+    Button,
+    Dialog,
+    InputText,
+    InputNumber,
+    Select,
+    Toast,
+    useToast,
+    FloatLabel,
+    Message,
+} from "primevue";
 
-import kriteriaComp from './Component/KriteriaPage.vue'
-import subKriteriaComp from './Component/SubKriteriaPage.vue'
+onMounted(() => {
+    checkNotif();
+});
 
-onMounted(() =>
-{
-    checkNotif()
-})
+const props = defineProps({
+    dataKriteria: Object,
+    dataSubKriteria: Object,
+    flash: Object,
+    auth: Object,
+});
 
-const props = defineProps({ dataKriteria : Object, dataSubKriteria : Object, flash : Object})
 
-const toast = useToast()
+const toast = useToast();
 
-let is_kriteria = props.flash?.is_kriteria || ref(true)
-const isLoading = ref(false)
+let is_kriteria = props.flash?.is_kriteria || ref(true);
+const isLoading = ref(false);
 
-let showKriteriaForm = ref(false)
-let showSubKriteriaForm = ref(false)
+let showKriteriaForm = ref(false);
+let showSubKriteriaForm = ref(false);
 
-const checkNotif = () =>
-{
-    if(props.flash.notif_status)
-    {
-        setTimeout(() =>
-        {
-            if(props.flash.notif_status === 'success') {
-                toast.add({ severity: 'success', summary: 'success', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
+const checkNotif = () => {
+    if (props.flash.notif_status) {
+        setTimeout(() => {
+            if (props.flash.notif_status === "success") {
+                toast.add({
+                    severity: "success",
+                    summary: "success",
+                    detail: props.flash.notif_message,
+                    life: 4000,
+                    group: "tc",
+                });
+            } else {
+                toast.add({
+                    severity: "error",
+                    summary: "Info",
+                    detail: props.flash.notif_message,
+                    life: 4000,
+                    group: "tc",
+                });
             }
-            else{
-                toast.add({ severity: 'error', summary: 'Info', detail: props.flash.notif_message, life: 4000,  group : 'tc' });
-            }
-        },1000)
+        }, 1000);
     }
-}
+};
 
-const refreshPage = () =>
-{
-    checkNotif()
-    showKriteriaForm.value = false
-    showSubKriteriaForm.value = false
-    isLoading.value = true
-    router.visit(route('super_admin.kriteria'))
-    setTimeout(() => isLoading.value = false, 600)
-}
+const refreshPage = () => {
+    checkNotif();
+    showKriteriaForm.value = false;
+    showSubKriteriaForm.value = false;
+    isLoading.value = true;
+    router.visit(route("super_admin.kriteria"));
+    setTimeout(() => (isLoading.value = false), 600);
+};
 
-const tambahData = () =>
-{
-    is_kriteria.value ? showKriteriaForm.value = true : showSubKriteriaForm.value = true
-}
+const tambahData = () => {
+    is_kriteria.value
+        ? (showKriteriaForm.value = true)
+        : (showSubKriteriaForm.value = true);
+};
+
+let tipe = [{ nama: "Cost" }, { nama: "Benefit" }];
 
 const kriteriaForm = useForm({
-    nama : '',
-    nilai_bobot : null
-})
+    nama: "",
+    nilai_bobot: null,
+    tipe: null,
+});
 
 const subKriteriaForm = useForm({
-    jenis : null,
-    nama : null,
-    nilai_bobot : null,
-    id_relasi : null,
-})
+    nama: null,
+    nilai_bobot: null,
+    id_relasi: null,
+});
 
-const tambahKriteria = () => 
-{
-    showKriteriaForm.value = false
+const tambahKriteria = () => {
+    showKriteriaForm.value = false;
 
-    kriteriaForm.post(route('super_admin.tambah.kriteria'), 
-    {
-        onSuccess : () => refreshPage(),
-        onError : () => {
-            toast.add({ severity: 'error', summary: 'notifikasi', detail:'Gagal menambahkan data kriteria :( ', life: 4000,  group : 'tc' }),
-            showKriteriaForm.value = true
-        }
-    })
-}
-const tambahSubKriteria = () => 
-{
-    showSubKriteriaForm.value = false
-    subKriteriaForm.post(route('super_admin.tambah.sub_kriteria'), 
-    {
-        onSuccess : () => refreshPage(),
-        onError : () => {
-            toast.add({ severity: 'error', summary: 'notifikasi', detail:'Gagal menambahkan data subkrtieria :( ', life: 4000,  group : 'tc' }),
-            showSubKriteriaForm.value = true
-        }
-    })
-}
+    kriteriaForm.post(route("super_admin.tambah.kriteria"), {
+        onSuccess: () => refreshPage(),
+        onError: () => {
+            toast.add({
+                severity: "error",
+                summary: "notifikasi",
+                detail: "Gagal menambahkan data kriteria :( ",
+                life: 4000,
+                group: "tc",
+            }),
+                (showKriteriaForm.value = true);
+        },
+    });
+};
+const tambahSubKriteria = () => {
+    showSubKriteriaForm.value = false;
+    subKriteriaForm.post(route("super_admin.tambah.sub_kriteria"), {
+        onSuccess: () => refreshPage(),
+        onError: () => {
+            toast.add({
+                severity: "error",
+                summary: "notifikasi",
+                detail: "Gagal menambahkan data subkrtieria :( ",
+                life: 4000,
+                group: "tc",
+            }),
+                (showSubKriteriaForm.value = true);
+        },
+    });
+};
 
-const errorToast = (errorMessage) => 
-{
-    toast.add({ severity: 'error', summary: 'notifikasi', detail: errorMessage, life: 4000,  group : 'tc' })
-}
+const errorToast = (errorMessage) => {
+    toast.add({
+        severity: "error",
+        summary: "notifikasi",
+        detail: errorMessage,
+        life: 4000,
+        group: "tc",
+    });
+};
 </script>
 
 <template>
     <Head :title="is_kriteria ? 'Kriteria' : 'Sub Kriteria'" />
-    <Layout>
+    <Layout :auth="auth">
         <template #pageContent>
-            <Toast position="top-center" group="tc"/>
+            <Toast position="top-center" group="tc" />
             <div class="flex flex-col gap-[1rem] p-4">
                 <h1 class="text-lg">Data Kriteria</h1>
                 <div class="flex items-center justify-between">
                     <div class="flex gap-8">
-                        <Button @click="is_kriteria = true" label="Kriteria" severity="help" size="small" class="w-[12rem]" :outlined="!is_kriteria"/>
-                        <Button @click="is_kriteria = false" label="Sub Kriteria" severity="help" size="small" class="w-[12rem]" :outlined="is_kriteria"/>
+                        <Button
+                            @click="is_kriteria = true"
+                            label="Kriteria"
+                            severity="info"
+                            size="small"
+                            class="w-[12rem]"
+                            :outlined="!is_kriteria"
+                        />
+                        <Button
+                            @click="is_kriteria = false"
+                            label="Sub Kriteria"
+                            severity="info"
+                            size="small"
+                            class="w-[12rem]"
+                            :outlined="is_kriteria"
+                        />
                     </div>
 
-                    <Button @click="tambahData()" severity="success" label="Tambah Data" size="small" class="w-[12rem]"/>
+                    <Button
+                        @click="tambahData()"
+                        label="Tambah Data"
+                        size="small"
+                        class="w-[12rem]"
+                        icon="pi pi-plus-circle"
+                    />
                 </div>
+
                 <!-- dialog tambah data kriteria -->
-                <Dialog modal  header="Tambah Kriteria" :style="{width: '40rem'}" v-model:visible="showKriteriaForm">
-                    <form @submit.prevent="tambahKriteria" class="flex items-center gap-x-[4rem] flex-wrap" autocomplete="off">
-                        <!-- data form -->
-                        
-                        <div class="flex flex-col gap-4 my-4">
-                            <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                            <InputText v-model="kriteriaForm.nama" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" :invalid="kriteriaForm.errors.nama?true:false" />
-                            <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nama">
+                <Dialog
+                    modal
+                    header="Tambah Kriteria"
+                    :style="{ width: '25rem' }"
+                    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+                    v-model:visible="showKriteriaForm"
+                >
+                    <form
+                        @submit.prevent="tambahKriteria"
+                        class="flex flex-col gap-4 mt-1"
+                        autocomplete="off"
+                    >
+                        <!-- Nama Kriteria -->
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <InputText
+                                    fluid
+                                    v-model="kriteriaForm.nama"
+                                    id="nama"
+                                    autocomplete="off"
+                                    :invalid="!!kriteriaForm.errors.nama"
+                                />
+                                <label for="nama">Nama Kriteria</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="kriteriaForm.errors.nama"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ kriteriaForm.errors.nama }}
-                            </span>
+                            </Message>
                         </div>
 
-                        <div class="flex flex-col gap-4 my-4">
-                            <label for="nilai" class="font-semibold w-40">Nilai Bobot (%)</label>
-                            <InputNumber v-model="kriteriaForm.nilai_bobot" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot" :invalid="kriteriaForm.errors.nilai_bobot?true:false"/>
-                            <span class="text-sm text-red-500" v-if="kriteriaForm.errors.nilai_bobot">
+                        <!-- Nilai Bobot -->
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <InputNumber
+                                    fluid
+                                    v-model="kriteriaForm.nilai_bobot"
+                                    inputId="nilai"
+                                    mode="decimal"
+                                    showButtons
+                                    :min="0"
+                                    :max="100"
+                                    :invalid="!!kriteriaForm.errors.nilai_bobot"
+                                />
+                                <label for="nilai">Nilai Bobot (%)</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="kriteriaForm.errors.nilai_bobot"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ kriteriaForm.errors.nilai_bobot }}
-                            </span>
+                            </Message>
                         </div>
 
-                        <div class="flex justify-end gap-2">
-                            <Button type="button" label="Reset" severity="danger" @click="kriteriaForm.reset()"/>
-                            <Button type="submit" label="Simpan Data" severity="info"/>
+                        <!-- Tipe -->
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <Select
+                                    fluid
+                                    id="tipe"
+                                    v-model="kriteriaForm.tipe"
+                                    :options="tipe"
+                                    optionLabel="nama"
+                                    optionValue="nama"
+                                    :invalid="!!kriteriaForm.errors.tipe"
+                                />
+                                <label for="tipe">Type</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="kriteriaForm.errors.tipe"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
+                                {{ kriteriaForm.errors.tipe }}
+                            </Message>
+                        </div>
+
+                        <!-- Tombol Aksi -->
+                        <div class="flex justify-end gap-2 w-full mt-4">
+                            <Button
+                                type="button"
+                                label="Reset"
+                                severity="danger"
+                                @click="kriteriaForm.reset()"
+                            />
+                            <Button
+                                type="submit"
+                                label="Simpan Data"
+                                severity="info"
+                            />
                         </div>
                     </form>
                 </Dialog>
+
                 <!-- dialog tambah data kriteria selesai -->
 
-                <!-- dialog tambah data subkriteria -->
-                <Dialog modal header="Tambah Sub Kriteria" :style="{width: '40rem'}" v-model:visible="showSubKriteriaForm">
-                    <form @submit.prevent="tambahSubKriteria" class="flex items-center flex-wrap gap-4" autocomplete="off">
-                        <!-- data form -->
-                        <div class="flex flex-col w-full gap-4 my-4">
-                            <label for="nama" class="font-semibold w-40">Nama Kriteria</label>
-                            <InputText v-model="subKriteriaForm.nama" :invalid="subKriteriaForm.errors.nama?true:false" id="nama" class="flex-auto" autocomplete="off" placeholder="Masukkan nama kriteria" />
-                            <span class="text-sm text-red-500" v-if="subKriteriaForm.errors.nama">
+                <Dialog
+                    modal
+                    header="Tambah Sub Kriteria"
+                    :style="{ width: '25rem' }"
+                    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+                    v-model:visible="showSubKriteriaForm"
+                >
+                    <form
+                        @submit.prevent="tambahSubKriteria"
+                        class="flex flex-col gap-4 mt-1"
+                        autocomplete="off"
+                    >
+                        <!-- Nama Sub Kriteria -->
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <InputText
+                                    fluid
+                                    v-model="subKriteriaForm.nama"
+                                    id="nama"
+                                    autocomplete="off"
+                                    :invalid="!!subKriteriaForm.errors.nama"
+                                />
+                                <label for="nama">Nama Sub Kriteria</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="subKriteriaForm.errors.nama"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ subKriteriaForm.errors.nama }}
-                            </span>
+                            </Message>
                         </div>
 
-                        <div class="flex flex-col gap-4 my-4">
-                            <label for="nilai" class="font-semibold w-40">Nilai</label>
-                            <InputNumber v-model="subKriteriaForm.nilai_bobot" :invalid="subKriteriaForm.errors.nilai_bobot?true:false" inputId="nilai" mode="decimal" showButtons :min="0" :max="100" placeholder="Masukkan nilai bobot"/>
-                            <span class="text-sm text-red-500" v-if="subKriteriaForm.errors.nilai_bobot">
+                        <!-- Nilai Bobot -->
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <InputNumber
+                                    fluid
+                                    v-model="subKriteriaForm.nilai_bobot"
+                                    inputId="nilai"
+                                    mode="decimal"
+                                    showButtons
+                                    :min="0"
+                                    :max="100"
+                                    :invalid="
+                                        !!subKriteriaForm.errors.nilai_bobot
+                                    "
+                                />
+                                <label for="nilai">Nilai Bobot (%)</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="subKriteriaForm.errors.nilai_bobot"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ subKriteriaForm.errors.nilai_bobot }}
-                            </span>
+                            </Message>
                         </div>
 
-                        <div class="flex flex-col gap-4 my-4">
-                            <label for="id_relasi" class="font-semibold w-40">Id Kriteria</label>
-                            <Select v-model="subKriteriaForm.id_relasi" :invalid="subKriteriaForm.errors.id_relasi?true:false" :options="props.dataKriteria" optionLabel="jenis" optionValue="id" placeholder="Pilih Id Kriteria"/>
-                            <span class="text-sm text-red-500" v-if="subKriteriaForm.errors.id_relasi">
+                        <!-- ID Kriteria -->
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <Select
+                                    fluid
+                                    v-model="subKriteriaForm.id_relasi"
+                                    :options="props.dataKriteria"
+                                    optionLabel="kode_kriteria"
+                                    optionValue="id"
+                                    :invalid="
+                                        !!subKriteriaForm.errors.id_relasi
+                                    "
+                                />
+                                <label for="id_relasi">ID Kriteria</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="subKriteriaForm.errors.id_relasi"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
                                 {{ subKriteriaForm.errors.id_relasi }}
-                            </span>
+                            </Message>
                         </div>
 
-                        <div class="flex justify-end gap-2">
-                            <Button type="button" label="Reset" severity="danger" @click="subKriteriaForm.reset()"/>
-                            <Button type="submit" label="Simpan Data" severity="info"/>
+                        <!-- Tombol Aksi -->
+                        <div class="flex justify-end gap-2 w-full mt-4">
+                            <Button
+                                type="button"
+                                label="Reset"
+                                severity="danger"
+                                @click="subKriteriaForm.reset()"
+                            />
+                            <Button
+                                type="submit"
+                                label="Simpan Data"
+                                severity="info"
+                            />
                         </div>
                     </form>
                 </Dialog>
-                <!-- dialog tambah data subkriteria selesai -->
-                <kriteriaComp v-if="is_kriteria" :dataKriteria="props.dataKriteria" @refresh-page="refreshPage()"/>
-                <subKriteriaComp v-else :dataKriteria="props.dataKriteria" :dataSubKriteria="dataSubKriteria" @refresh-page="refreshPage()" @error-toast="errorToast('Gagal update data sub kriteria :( ')"/>
+
+                <kriteriaComp
+                    v-if="is_kriteria"
+                    :dataKriteria="props.dataKriteria"
+                    @refresh-page="refreshPage()"
+                />
+                <subKriteriaComp
+                    v-else
+                    :dataKriteria="props.dataKriteria"
+                    :dataSubKriteria="dataSubKriteria"
+                    @refresh-page="refreshPage()"
+                    @error-toast="
+                        errorToast('Gagal update data sub kriteria :( ')
+                    "
+                />
             </div>
         </template>
     </Layout>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
