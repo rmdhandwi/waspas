@@ -40,6 +40,13 @@ const kriteria = ref([]);
 const subkriteria = ref([]);
 const Wargadata = ref([]);
 const showForm = ref(false);
+
+const showFormAdd = () => {
+    formWarga.reset();
+    showForm.value = true;
+    formType.value = 'add';
+};
+
 const isLoading = ref(false);
 
 // Opsi untuk dropdown Agama
@@ -378,12 +385,12 @@ const exportCSV = () => {
                 <!-- Header -->
                 <div class="flex justify-between items-center">
                     <h1 class="text-xl font-semibold">Data Warga</h1>
-                    <div v-if="pageProps.auth.user.role == 'super_admin'">
+                    <div v-if="pageProps.auth.user.role == 'perangkat'">
                         <Button
                             label="Tambah Data"
                             icon="pi pi-plus"
                             size="small"
-                            @click="showForm = true"
+                            @click="showFormAdd"
                         />
                     </div>
                 </div>
@@ -918,9 +925,7 @@ const exportCSV = () => {
                                 </template>
                             </Column>
 
-                            <div
-                                v-if="pageProps.auth.user.role == 'super_admin'"
-                            >
+                            <div v-if="pageProps.auth.user.role == 'perangkat'">
                                 <Column
                                     header="Opsi"
                                     frozen

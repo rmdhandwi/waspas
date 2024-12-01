@@ -53,10 +53,4 @@ class superAdminController extends Controller
         ]);
     }
 
-
-    public function UsersPage()
-    {
-        $user = User::where('role', 'admin')->select('id', 'username', 'nama', 'role', 'foto_profil')->get();
-        return Inertia::render('SuperAdmin/Users/Users', ['usersData' => $user]);
-    }
 }

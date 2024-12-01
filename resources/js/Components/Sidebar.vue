@@ -35,7 +35,7 @@ const roleUser = props.auth.user.role;
                 </NavLink>
 
                 <!-- Menu khusus untuk super_admin -->
-                <template v-if="roleUser === 'super_admin'">
+                <template v-if="roleUser === 'perangkat'">
                     <NavLink
                         :href="route('super_admin.pengguna')"
                         :active="

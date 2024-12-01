@@ -47,9 +47,7 @@ class Authentication extends Controller
             ];
 
             // Alihkan berdasarkan role user
-            if ($userRole === 'super_admin') {
-                return redirect()->route('dashboard')->with($notification);
-            } elseif ($userRole === 'admin') {
+            if ($userRole !== null) {
                 return redirect()->route('dashboard')->with($notification);
             } else {
                 // Logout jika role tidak valid

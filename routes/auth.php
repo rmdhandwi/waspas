@@ -19,11 +19,10 @@ Route::middleware('auth')->group(function () {
     //    super_admin
     Route::get('Dashboard', [superAdminController::class, 'Dashboard'])->name('dashboard');
     
-    Route::get('Pengguna', [superAdminController::class, 'UsersPage'])->name('super_admin.pengguna');
-    Route::post('Pengguna', [user::class, 'tambahPengguna'])->name('super_admin.tambah.pengguna');
-    Route::get('Pengguna/view/{id}', [user::class, 'viewPengguna'])->name('super_admin.view.pengguna');
-    Route::post('Pengguna/update/{id}', [user::class, 'updatePengguna']);
-    Route::post('Pengguna/hapus/{id}', [user::class, 'hapusPengguna']);
+    Route::get('Pengguna', [user::class, 'userpage'])->name('super_admin.pengguna');
+    Route::post('Pengguna', [user::class, 'tambahPengguna'])->name('tambahUser');
+    Route::put('UpdatePengguna/{id}', [user::class, 'updateUser'])->name('updateUser');
+    Route::delete('DeletePengguna/{id}', [user::class, 'hapusPengguna'])->name('deleteUser');
 
     Route::get('Periode', [periode::class, 'periodePage'])->name('periode');
     Route::post('Periode/Add', [periode::class, 'tambah_periode'])->name('AddPeriode');

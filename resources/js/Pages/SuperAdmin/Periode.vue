@@ -48,7 +48,6 @@ onMounted(() => {
     checkNotif();
 });
 
-console.log(dataPeriode.value);
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -102,6 +101,7 @@ const refreshPage = () => {
 };
 
 const periodeForm = useForm({
+    id:"",
     tahun: "",
 });
 
@@ -156,18 +156,11 @@ const editPeriode = () => {
     });
 };
 
-const hapusPeriode = useForm({
-    id_menu: "",
-    nama_menu: "",
-});
 
 const confirm = useConfirm();
-const confirmDelete = (id, tahun) => {
-    hapusPeriode.id = id;
-    hapusPeriode.tahun = tahun;
-
+const confirmDelete = (data) => {
     confirm.require({
-        message: `Yakin ingin menghapus data record ${tahun}?`,
+        message: `Yakin ingin menghapus data record ${data.tahun}?`,
         header: "Peringatan",
         icon: "pi pi-info-circle",
         rejectLabel: "Cancel",
@@ -181,7 +174,7 @@ const confirmDelete = (id, tahun) => {
             severity: "danger",
         },
         accept: () => {
-            hapusPeriode.delete(route("DeletePeriode", hapusPeriode.id), {
+            periodeForm.delete(route("DeletePeriode", data.id), {
                 onSuccess: () => refreshPage(),
                 onError: () => {
                     toast.add({
@@ -369,7 +362,7 @@ const confirmDelete = (id, tahun) => {
                                     <Button
                                         size="small"
                                         @click="
-                                            confirmDelete(data.id, data.tahun)
+                                            confirmDelete(data)
                                         "
                                         icon="pi pi-trash"
                                         iconPos="right"

@@ -124,10 +124,6 @@ const setChartOptions = () => {
                 },
             },
         },
-        animation: {
-            duration: 1500, // Durasi animasi
-            easing: "easeOutBounce", // Gaya animasi
-        },
     };
 };
 </script>
@@ -139,13 +135,13 @@ const setChartOptions = () => {
             <div
                 :class="{
                     'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4':
-                        props.auth.user.role === 'admin',
+                        props.auth.user.role === 'kepala',
                     'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4':
-                        props.auth.user.role === 'super_admin',
+                        props.auth.user.role === 'perangkat',
                 }"
             >
                 <!-- Cards for Super Admin -->
-                <template v-if="props.auth.user.role === 'super_admin'">
+                <template v-if="props.auth.user.role === 'perangkat'">
                     <!-- Card: Users -->
                     <Button
                         as="a"
@@ -234,8 +230,8 @@ const setChartOptions = () => {
                 <!-- Common Cards (Admin and Super Admin) -->
                 <template
                     v-if="
-                        props.auth.user.role === 'admin' ||
-                        props.auth.user.role === 'super_admin'
+                        props.auth.user.role === 'kepala' ||
+                        props.auth.user.role === 'perangkat'
                     "
                 >
                     <!-- Card: Warga -->
