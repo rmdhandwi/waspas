@@ -3,98 +3,261 @@
 namespace App\Http\Controllers\super_admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\dataWarga as ModelWarga;
+use App\Models\hasil;
 use App\Models\Kriteria;
-use App\Models\seleksi as ModelsSeleksi;
+use App\Models\periode;
 use App\Models\SubKriteria;
+use App\Models\Warga;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class seleksi extends Controller
 {
 
-    public function seleksipage()
+    public function hitungWaspas(Request $request)
     {
-        // Ambil semua data warga dari database
-        $warga = ModelWarga::all();
-        $subkriteria = SubKriteria::with(['kriteria' => function ($query) {
-            $query->select('id', 'nama', 'jenis');
-        }])->get();
-        $seleksi = ModelsSeleksi::with(['warga' => function ($query) {
-            $query->select('id', 'nama_kk', 'nomor_kk');
-        }])->get();;
+        // Validasi input periodeId
+        $request->validate([
+            'periode_id' => 'required'
+        ], [
+            'periode_id.required' => 'Harus memilih periode'
+        ]);
 
-        $columns = Schema::getColumnListing('seleksi');
-        $columns = array_slice($columns, 3);
+        // Ambil periode yang dipilih
+        $periodeId = $request->periode_id;
 
-        // Kirim data kategori ke tampilan menggunakan Inertia
+        // Ambil data kriteria dan subkriteria
+        $kriteria = Kriteria::all(); // Semua kriteria
+        $subkriteria = Subkriteria::all(); // Semua subkriteria
+
+        // Validasi jumlah bobot kriteria
+        $totalBobot = $kriteria->sum('bobot');
+        if ($totalBobot < 100) {
+            return back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Jumlah total bobot kriteria kurang dari 100!',
+            ]);
+        }
+
+        $periode = Periode::where('id', $periodeId)
+            ->select('id', 'tahun')->get();
+
+        // Ambil data warga dengan status 0 berdasarkan periode
+        $warga = Warga::where('tahun_id', $periodeId)
+            ->where('status', 0) // Hanya warga dengan status 0
+            ->get();
+
+        // Cek jika jumlah warga untuk periode ini kurang dari 1
+        if ($warga->isEmpty()) {
+            return back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Data warga periode ini tidak ditemukan!',
+            ]);
+        }
+
+        // Validasi apakah ada kolom kosong pada data warga
+        foreach ($warga as $alt) {
+            foreach ($kriteria as $criteria) {
+                $column = $criteria->nama_kriteria;
+
+                // Jika ada kolom kriteria yang kosong, kembalikan notifikasi
+                if (is_null($alt->{$column})) {
+                    return back()->with([
+                        'notif_status' => 'error',
+                        'notif_message' => "Ada data kosong pada warga untuk kriteria $column",
+                    ]);
+                }
+            }
+        }
+
+        // Buat array baru untuk menampung data warga yang sesuai dengan kriteria
+        $filteredWarga = [];
+
+        foreach ($warga as $alt) {
+            $filteredData = [];
+
+            foreach ($kriteria as $criteria) {
+                $column = $criteria->nama_kriteria;
+                $filteredData[$column] = $alt->{$column};
+
+                // Ambil nilai dari subkriteria yang cocok dengan kolom warga
+                $value = $alt->{$column};
+                $matchingSubkriteria = $subkriteria->where('kriteria_id', $criteria->id);
+                $matchedSubkriteria = $matchingSubkriteria->firstWhere('nama_subkriteria', $value);
+
+                // Jika subkriteria ditemukan, ambil nilai subkriteria tersebut
+                if ($matchedSubkriteria) {
+                    $filteredData[$column] = $matchedSubkriteria->nilai;
+                } else {
+                    // Jika tidak ada kecocokan, tetapkan nilai default (misalnya 0)
+                    $filteredData[$column] = 0;
+                }
+            }
+
+            // Simpan data yang telah difilter ke dalam array baru, termasuk ID warga
+            $filteredWarga[] = [
+                'id' => $alt->id,
+                'alternatif' => $alt->nama_kk, // Nama alternatif (misalnya nama KK)
+                'data' => $filteredData,      // Data yang relevan berdasarkan kriteria
+            ];
+        }
+
+
+
+        // Proses normalisasi dan perhitungan Waspas
+        foreach ($filteredWarga as &$alt) {
+            $normalizedValues = [];
+            $altData = $alt['data'];
+
+            foreach ($kriteria as $criteria) {
+                $namaKriteria = $criteria->nama_kriteria;
+
+                // Ambil semua nilai terkait kriteria ini dari filteredWarga
+                $allValues = collect($filteredWarga)->pluck("data.$namaKriteria");
+
+                if ($allValues->isNotEmpty() && isset($altData[$namaKriteria])) {
+                    $subValue = $altData[$namaKriteria];
+
+                    // Normalisasi berdasarkan tipe kriteria
+                    if ($criteria->tipe == 'Cost') {
+                        $minValue = $allValues->min();
+                        $normalizedValue = $minValue != 0 ? $minValue / $subValue : 0; // Hindari pembagian dengan nol
+                    } else { // Benefit
+                        $maxValue = $allValues->max();
+                        $normalizedValue = $maxValue != 0 ? $subValue / $maxValue : 0; // Hindari pembagian dengan nol
+                    }
+
+                    // Simpan nilai normalisasi
+                    $normalizedValues[$criteria->kode_kriteria] = round($normalizedValue, 3);
+                } else {
+                    // Jika tidak ada nilai untuk kriteria ini, tetapkan 0
+                    $normalizedValues[$criteria->kode_kriteria] = 0;
+                }
+            }
+
+            // Tambahkan hasil normalisasi ke data warga
+            $alt['normalisasi'] = $normalizedValues;
+        }
+
+        // Menghitung Qi dan melakukan ranking
+        foreach ($filteredWarga as &$alt) {
+            $qi = 0; // Bagian additive
+            $prod = 1; // Bagian multiplicative
+
+            foreach ($kriteria as $criteria) {
+                $kodeKriteria = $criteria->kode_kriteria;
+                $weight = $criteria->bobot / 100; // Bobot dalam desimal
+
+                // Ambil nilai normalisasi
+                $r_ij = $alt['normalisasi'][$kodeKriteria] ?? 0;
+
+                // Bagian additive
+                $qi += $r_ij * $weight;
+
+                // Bagian multiplicative
+                $prod *= pow($r_ij, $weight);
+            }
+
+            // Kombinasi additive dan multiplicative
+            $alt['qi'] = round(0.5 * $qi + 0.5 * $prod, 3);
+        }
+
+        // Urutkan hasil berdasarkan Qi
+        usort($filteredWarga, function ($a, $b) {
+            return $b['qi'] <=> $a['qi']; // Descending order
+        });
+
+        // Berikan ranking berdasarkan Qi
+        foreach ($filteredWarga as $index => &$alt) {
+            $alt['ranking'] = $index + 1;
+        }
+
+        // Kirim hasil ke tampilan
         return Inertia::render('SuperAdmin/Seleksi', [
-            'warga' => $warga,
-            'subkriteria' => $subkriteria,
-            'seleksi' => $seleksi,
-            'column'  => $columns
+            'result' => $filteredWarga, // Data alternatif dan hasil perhitungan
+            'periode' => $periode,      // Periode yang dipilih
+            'kriteria' => $kriteria,    // Kriteria untuk header tabel
         ]);
     }
 
-    public function tambahSeleksi(Request $request)
+    public function saveHasilAkhir(Request $request)
     {
-        // Validate the request data
-        $request->validate([
-            'warga' => 'required',
-            'C1' => 'required',
-            'C2' => 'required',
-            'C3' => 'required',
-            'C4' => 'required',
-            'C5' => 'required',
-            'C6' => 'required',
-            'C7' => 'required',
-            'C8' => 'required',
-        ], [
-            '*.required' => 'Kolom harus diisi',
-        ]);
+        // Ambil data hasil seleksi yang diterima dari frontend
+        $results = $request->results;
+        $exportCount = (int)$request->export_count; // Ambil jumlah data yang dimasukkan pengguna
 
-        try {
-            // Check if the selected warga already has a Seleksi record
-            $existingSeleksi = ModelsSeleksi::where('id_warga', $request->input('warga'))->first();
+        // Pastikan data hasil seleksi ada
+        if (empty($results)) {
+            return redirect()->route('wargapage')->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Tidak ada data hasil seleksi yang diterima.',
+            ]);
+        }
 
-            if ($existingSeleksi) {
-                // If a record with the same id_warga already exists, return an error
-                return back()->with([
-                    'notif_status' => 'error',
-                    'notif_message' => 'Data dengan Warga ID yang dipilih sudah ada!',
-                ]);
-            }
+        // Validasi jumlah data yang akan disimpan
+        if ($exportCount <= 0 || $exportCount > count($results)) {
+            return redirect()->route('wargapage')->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Jumlah data yang diminta tidak valid.',
+            ]);
+        }
 
-            // Check if the selected warga exists
-            $warga = ModelWarga::where('id', $request->input('warga'))->firstOrFail();
+        // Ambil hanya sejumlah data sesuai exportCount
+        $selectedResults = array_slice($results, 0, $exportCount);
 
-            // Create a new Seleksi record
-            ModelsSeleksi::create([
-                'id_warga' => $warga->id, // Assuming you have an id_warga field in the seleksi table
-                'C1' => $request->C1,
-                'C2' => $request->C2,
-                'C3' => $request->C3,
-                'C4' => $request->C4,
-                'C5' => $request->C5,
-                'C6' => $request->C6,
-                'C7' => $request->C7,
-                'C8' => $request->C8,
+        // Cek jika ada masalah dalam menyimpan data
+        $isSaved = true;
+
+        foreach ($selectedResults as $result) {
+            // Simpan hasil akhir untuk setiap warga
+            $hasil = hasil::create([
+                'warga_id' => $result['id'], // ID warga
+                'skor_akhir' => $result['qi'], // Nilai Qi
+                'peringkat' => $result['ranking'], // Peringkat
                 'created_at' => Carbon::now('Asia/Jayapura')
             ]);
 
-            // Redirect back with success message
-            return back()->with([
+            // Pastikan data berhasil disimpan
+            if (!$hasil) {
+                $isSaved = false;
+                break;
+            }
+
+            // Update status warga yang terpilih ke 1 (sudah diproses)
+            $updateStatus = Warga::where('id', $result['id'])
+                ->update(['status' => 1, 'updated_at' => Carbon::now('Asia/Jayapura')]);
+
+            // Cek jika update status gagal
+            if (!$updateStatus) {
+                $isSaved = false;
+                break;
+            }
+        }
+
+        // Kembalikan notifikasi berdasarkan hasil
+        if ($isSaved) {
+            return redirect()->route('wargapage')->with([
                 'notif_status' => 'success',
-                'notif_message' => 'Data seleksi berhasil ditambahkan!',
+                'notif_message' => 'Data hasil perhitungan berhasil disimpan dan status warga telah diperbarui.',
             ]);
-        } catch (\Exception $e) {
-            // Handle any errors that may occur
-            return back()->with([
+        } else {
+            return redirect()->route('wargapage')->with([
                 'notif_status' => 'error',
-                'notif_message' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage(),
+                'notif_message' => 'Terjadi kesalahan saat menyimpan data atau memperbarui status.',
             ]);
         }
+    }
+
+
+    public function hasilpage()
+    {
+        // Ambil data seleksi dengan relasi warga
+        $dataSeleksi = hasil::with(['warga:id,nama_kk,nomor_kk'])->get();
+
+        // Kembalikan view dengan data hasil
+        return Inertia::render('SuperAdmin/Hasil', [
+            'hasil' => $dataSeleksi
+        ]);
     }
 }

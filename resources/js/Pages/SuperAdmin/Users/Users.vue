@@ -149,7 +149,7 @@ let hapusUser = (idUser, nama) => {
             <div class="flex flex-col gap-[1rem]">
                 <Toast position="top-center" group="tc" />
                 <div class="p-4 flex justify-between items-center">
-                    <h1 class="text-lg">Daftar Pengguna</h1>
+                    <h1 class="text-xl font-semibold">Daftar Pengguna</h1>
                     <Button
                         size="small"
                         label="Tambah Pengguna"
@@ -316,6 +316,7 @@ let hapusUser = (idUser, nama) => {
                             ref="dt"
                             :value="dataUserFix"
                             paginator
+                            :rowsPerPageOptions="[5, 10, 20, 50, 100]"
                             :rows="10"
                         >
                             <template #header>

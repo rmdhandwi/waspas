@@ -143,7 +143,7 @@ const errorToast = (errorMessage) => {
         <template #pageContent>
             <Toast position="top-center" group="tc" />
             <div class="flex flex-col gap-[1rem] p-4">
-                <h1 class="text-lg">Data Kriteria</h1>
+                <h1 class="text-xl font-semibold">Data Kriteria</h1>
                 <div class="flex items-center justify-between">
                     <div class="flex gap-8">
                         <Button

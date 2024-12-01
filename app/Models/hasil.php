@@ -6,32 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 
-class warga extends Model
+class hasil extends Model
 {
     use HasFactory;
-    protected $table = 'warga';
-    protected $primaryKey = 'id';
     public $timestamps = false;
+    protected $table = 'hasil_seleksi';
+    protected $primaryKey = 'id';
 
-    // deteksi kolom pada tabel dinamis
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
         $this->fillable = Schema::getColumnListing($this->table);
     }
 
-    public function subkriteria()
+    public function warga()
     {
-        return $this->hasMany(Subkriteria::class, 'kriteria_id');
+        return $this->belongsTo(warga::class);
     }
 
-    public function periode()
-    {
-        return $this->hasMany(periode::class, 'id');
-    }
-
-    public function hasil()
-    {
-        return $this->hasOne(hasil::class);
-    }
 }

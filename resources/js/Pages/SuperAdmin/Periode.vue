@@ -214,17 +214,16 @@ const confirmDelete = (id, tahun) => {
     <Layout :auth="auth">
         <template #pageContent>
             <Toast position="top-center" group="tc" />
-            <div class="flex flex-col gap-4 p-4">
-                <h1 class="text-lg">Data Periode</h1>
-                <div class="flex items-center justify-between">
-                    <Button
-                        @click="showPeriodeForm = true"
-                        label="Tambah Data"
-                        size="small"
-                        class="w-48"
-                        icon="pi pi-plus-circle"
-                    />
-                </div>
+            <div class="flex gap-4 p-4 justify-between">
+                <h1 class="text-xl font-semibold">Data Periode</h1>
+
+                <Button
+                    @click="showPeriodeForm = true"
+                    label="Tambah Data"
+                    size="small"
+                    class="w-48"
+                    icon="pi pi-plus-circle"
+                />
             </div>
 
             <Dialog
@@ -325,6 +324,7 @@ const confirmDelete = (id, tahun) => {
                         ref="dt"
                         :value="dataPeriode"
                         paginator
+                        :rowsPerPageOptions="[5, 10, 20, 50, 100]"
                         :rows="10"
                     >
                         <template #header>

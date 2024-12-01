@@ -9,17 +9,17 @@ class Kriteria extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected   $table = 'kriteria',
-        $primaryKey = 'id',
-        $fillable = [
-            'id',
-            'kode_kriteria',
-            'nama_kriteria',
-            'bobot',
-            'tipe',
-            'created_at',
-            'updated_at'
-        ];
+    protected  $table = 'kriteria';
+    protected  $primaryKey = 'id';
+    protected  $fillable = [
+        'id',
+        'kode_kriteria',
+        'nama_kriteria',
+        'bobot',
+        'tipe',
+        'created_at',
+        'updated_at'
+    ];
 
     public function subkriteria()
     {

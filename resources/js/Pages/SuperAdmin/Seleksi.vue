@@ -1,364 +1,178 @@
 <script setup>
-import { onMounted, ref, defineProps, computed } from "vue";
-import { Head, router, useForm } from "@inertiajs/vue3";
-import Layout from "@/Layouts/TemplateLayout.vue";
+import { defineProps, ref, watch } from "vue";
+import { Head, router } from "@inertiajs/vue3";
+import TemplateLayout from "@/Layouts/TemplateLayout.vue";
 import {
     DataTable,
     Column,
+    Card,
+    InputNumber,
     Button,
-    Dialog,
-    Select,
-    Toast,
     FloatLabel,
-    Message,
-    useToast,
 } from "primevue";
-import { FilterMatchMode } from "@primevue/core/api";
+import { useForm } from "@inertiajs/vue3";
 
 const props = defineProps({
-    warga: Array,
-    subkriteria: Array,
-    seleksi: Object,
-    flash: Object,
-    auth: Object,
-    column: Array,
+    result: Array, // Data hasil normalisasi dan alternatif
+    periode: Array,
+    kriteria: Array, // Data kriteria yang diterima untuk header tabel
+    auth: Object, // Data autentikasi pengguna
 });
 
-let groupedSubkriteria = ref({});
-let dataseleksi = ref([]);
-let showForm = ref(false);
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-let dt = ref();
+const dt = ref(null); // Referensi untuk DataTable
+const exportCount = ref(10); // Default jumlah data yang ingin disimpan
+const filteredResult = ref([]);
 
-const seleksiForm = useForm({
-    warga: null,
-    C1: null,
-    C2: null,
-    C3: null,
-    C4: null,
-    C5: null,
-    C6: null,
-    C7: null,
-    C8: null,
-});
+// Watch untuk memfilter hasil berdasarkan `exportCount`
+watch(
+    () => exportCount.value,
+    (newCount) => {
+        // Ambil hasil berdasarkan jumlah `exportCount`
+        filteredResult.value = props.result.slice(0, newCount);
+    },
+    { immediate: true }
+);
 
-const toast = useToast();
-
-onMounted(() => {
-    dataseleksi.value = props.seleksi.map((p, i) => ({
-        index: i + 1,
-        ...p,
-    }));
-    checkNotif();
-
-    // Group subkriteria by kriteria
-    props.subkriteria.forEach((sub) => {
-        const kriteriajenis = sub.kriteria.jenis;
-        if (!groupedSubkriteria.value[kriteriajenis]) {
-            groupedSubkriteria.value[kriteriajenis] = {
-                kriteria: sub.kriteria.nama,
-                subkriteria: [],
-            };
-        }
-        groupedSubkriteria.value[kriteriajenis].subkriteria.push(sub);
-    });
-
-    console.log("Grouped Subkriteria:", groupedSubkriteria.value);
-});
-
-// Computed options for dynamic selects based on criteria
-const dynamicOptions = computed(() => {
-    const options = {};
-    for (const [key, value] of Object.entries(groupedSubkriteria.value)) {
-        if (value && Array.isArray(value.subkriteria)) {
-            options[key] = {
-                kriteria: value.kriteria,
-                subkriteria: value.subkriteria.map((sub) => ({
-                    id: sub.id,
-                    label: sub.nama_sub,
-                    value: sub.nilai_bobot,
-                })),
-            };
-        } else {
-            options[key] = { kriteria: "Kriteria", subkriteria: [] };
-        }
-    }
-    return options;
-});
-
-// Export table data to CSV
+// Fungsi untuk mengekspor data ke CSV
 const exportCSV = () => {
     dt.value.exportCSV();
 };
 
-// Notification handling
-const checkNotif = () => {
-    if (props.flash.notif_status) {
-        setTimeout(() => {
-            toast.add({
-                severity:
-                    props.flash.notif_status === "success"
-                        ? "success"
-                        : "error",
-                summary: "Info",
-                detail: props.flash.notif_message,
-                life: 4000,
-                group: "tc",
-            });
-        }, 1000);
-    }
-};
+// Inertia form untuk mengirim data ke backend
+const form = useForm({
+    results: [], // Data yang akan disimpan
+    export_count: exportCount.value, // Jumlah data yang dipilih
+});
 
-// Refresh page and reset form
-const refreshPage = () => {
-    checkNotif();
-    showForm.value = false;
-    router.visit(route("seleksi"));
-    seleksiForm.reset();
-};
-
-// Form submission handler
-const submitData = () => {
-    seleksiForm.value = false;
-
-    seleksiForm.post(route("tambah_seleksi"), {
-        onSuccess: () => refreshPage(),
-        onError: () => {
-            toast.add({
-                severity: "error",
-                summary: "notifikasi",
-                detail: "Gagal menambahkan data kriteria :( ",
-                life: 4000,
-                group: "tc",
-            }),
-                (seleksiForm.value = true);
+// Fungsi untuk menyimpan data
+const saveData = () => {
+    form.results = filteredResult.value; // Ambil hasil yang difilter
+    form.post(route("simpanDataHasil"), {
+        onSuccess: () => {
+            form.reset("results");
         },
     });
 };
 
-const handleWargaChange = (selectedWargaId) => {
-    const selectedWarga = props.warga.find((w) => w.id === selectedWargaId);
-
-    if (selectedWarga) {
-        // Log the selected warga data
-        console.log("Selected Warga Data:", selectedWarga);
-
-        // Compare each relevant field from 'warga' with the 'subkriteria'
-        updateSelectBasedOnWargaData("C1", selectedWarga.jmlh_penghasilan);
-        updateSelectBasedOnWargaData("C2", selectedWarga.status_rumah);
-        updateSelectBasedOnWargaData("C3", selectedWarga.struktur_bangunan);
-        updateSelectBasedOnWargaData("C4", selectedWarga.lahan);
-        updateSelectBasedOnWargaData("C5", selectedWarga.legalitas_lahan);
-        updateSelectBasedOnWargaData("C6", selectedWarga.jmlh_keluarga, true);
-        updateSelectBasedOnWargaData("C7", selectedWarga.sanitasi);
-        updateSelectBasedOnWargaData("C8", selectedWarga.t_limbah);
-
-        // Log the updated form after processing all criteria
-        console.log("Updated Form Data after Comparison:", seleksiForm);
-    }
-};
-
-// Function to update the Select field based on comparison with subkriteria
-const updateSelectBasedOnWargaData = (
-    criteriaKey,
-    wargaValue,
-    isFamilySize = false
-) => {
-    if (wargaValue !== null && wargaValue !== undefined) {
-        let normalizedValue = String(wargaValue)
-            .toLowerCase()
-            .replace(/\s+/g, "");
-
-        // Special handling for family size (C6)
-        if (isFamilySize) {
-            if (wargaValue <= 2) normalizedValue = "<=2orang";
-            else if (wargaValue >= 3 && wargaValue <= 5)
-                normalizedValue = "3-5orang";
-            else normalizedValue = ">6orang";
-        }
-
-        // Log the normalized value for debugging
-        console.log(
-            `Criteria: ${criteriaKey}, Normalized Value: ${normalizedValue}`
-        );
-
-        // Find matching subkriteria based on the normalized value
-        const matchedSub = props.subkriteria.find(
-            (sub) =>
-                sub.nama_sub.toLowerCase().replace(/\s+/g, "") ===
-                normalizedValue
-        );
-
-        // If a match is found, update the corresponding criteria in seleksiForm
-        if (matchedSub) {
-            seleksiForm[criteriaKey] = matchedSub.nilai_bobot;
-            console.log(`Matched Subkriteria for ${criteriaKey}:`, matchedSub);
-        } else {
-            seleksiForm[criteriaKey] = null; // Reset if no match found
-            console.log(`No matching Subkriteria found for ${criteriaKey}`);
-        }
-    }
+// Format nama kolom untuk keterbacaan
+const formatName = (columnName) => {
+    return columnName
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
 };
 </script>
 
 <template>
     <Head title="Seleksi" />
-    <Layout :auth="auth">
+    <TemplateLayout :auth="auth">
         <template #pageContent>
-            <div class="flex flex-col gap-4">
-                <Toast position="top-center" group="tc" />
-                <div class="p-4 flex justify-between items-center">
-                    <h1 class="text-lg">Daftar Seleksi</h1>
-                    <Button
-                        icon="pi pi-plus-circle"
-                        size="small"
-                        label="Tambah Data"
-                        @click="showForm = true"
-                    />
+            <div class="p-4">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-lg font-bold">Data Seleksi</h1>
+                    <p v-if="periode.length">Periode: {{ periode[0].tahun }}</p>
+                    <p v-else class="text-red-500">Periode tidak ditemukan!</p>
                 </div>
 
-                <Dialog
-                    v-model:visible="showForm"
-                    modal
-                    :style="{ width: '50vw' }"
-                    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
-                    header="Tambah Data Seleksi"
-                >
-                    <form
-                        @submit.prevent="submitData"
-                        class="flex flex-col gap-y-4"
-                        autocomplete="off"
-                    >
-                        <div class="flex items-center flex-wrap gap-4 my-4">
-                            <div class="warga w-[14.4rem]">
-                                <FloatLabel variant="on" class="w-full">
-                                    <Select
-                                        fluid
-                                        class="text-slate-950"
-                                        id="select_warga"
-                                        v-model="seleksiForm.warga"
-                                        :options="warga"
-                                        optionValue="id"
-                                        optionLabel="nama_kk"
-                                        :@keyup="console.log(seleksiForm.warga)"
-                                        @change="
-                                            handleWargaChange(seleksiForm.warga)
-                                        "
-                                        :invalid="!!seleksiForm.errors.warga"
-                                    />
-                                    <label for="select_warga"
-                                        >Pilih Warga</label
-                                    >
-                                </FloatLabel>
-                                <Message
-                                    v-if="seleksiForm.errors.warga"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ seleksiForm.errors.warga }}
-                                </Message>
-                            </div>
-
-                            <div
-                                v-for="(
-                                    optionGroup, criteria
-                                ) in dynamicOptions"
-                                :key="criteria"
-                                class="warga w-[14.4rem]"
-                            >
-                                <FloatLabel variant="on" class="w-full">
-                                    <Select
-                                        fluid
-                                        class="text-slate-950"
-                                        :id="`select_${criteria}`"
-                                        v-model="seleksiForm[criteria]"
-                                        :options="optionGroup.subkriteria"
-                                        optionValue="value"
-                                        optionLabel="label"
-                                        :@keyup="
-                                            console.log(seleksiForm[criteria])
-                                        "
-                                        :invalid="
-                                            !!seleksiForm.errors[criteria]
-                                        "
-                                    />
-                                    <label :for="`select_${criteria}`">{{
-                                        optionGroup.kriteria
-                                    }}</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="seleksiForm.errors[criteria]"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ seleksiForm.errors[criteria] }}
-                                </Message>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end mt-4">
-                            <Button
-                                label="Batal"
+                <!-- Input untuk jumlah data -->
+                <form @submit.prevent="saveData">
+                    <div class="flex items-center justify-between mt-3">
+                        <FloatLabel variant="on">
+                            <InputNumber
+                                id="exportCount"
+                                v-model="form.export_count"
+                                :min="1"
+                                :max="props.result.length"
+                                :step="1"
                                 size="small"
-                                severity="danger"
-                                text
-                                @click="showForm = false"
+                            />
+                            <label for="exportCount">Jumlah Data</label>
+                        </FloatLabel>
+
+                        <div>
+                            <Button
+                                label="Ekspor CSV"
+                                icon="pi pi-file"
+                                size="small"
+                                class="me-2"
+                                @click="exportCSV"
                             />
                             <Button
                                 label="Simpan"
+                                icon="pi pi-download"
                                 size="small"
+                                class="display-inline"
                                 type="submit"
-                                class="ml-2"
                             />
                         </div>
-                    </form>
-                </Dialog>
+                    </div>
+                </form>
 
-                <!-- Dynamic DataTable -->
-                <DataTable
-                    :filters="filters"
-                    :value="dataseleksi"
-                    stripedRows
-                    showGridlines
-                    class="p-5"
-                    ref="dt"
-                    responsiveLayout="scroll"
-                    paginator
-                    :rows="10"
-                    :rowsPerPageOptions="[5, 10, 20, 50]"
-                    paginatorPosition="both"
-                >
-                    <!-- Render Warga's nama_kk and nomor_kk explicitly -->
-                    <Column field="index" header="No" style="min-width: 1rem" />
-                    <Column
-                        field="warga.nama_kk"
-                        header="Nama KK"
-                        style="min-width: 12rem"
-                    />
-                    <Column
-                        field="warga.nomor_kk"
-                        header="Nomor KK"
-                        style="min-width: 12rem"
-                    />
+                <!-- Tabel Normalisasi -->
+                <Card class="mt-2 mb-5">
+                    <template #title>
+                        <h2>Normalisasi</h2>
+                    </template>
+                    <template #content>
+                        <DataTable
+                            :value="filteredResult"
+                            paginator
+                            :rows="10"
+                            showGridlines
+                            responsiveLayout="scroll"
+                            :rowsPerPageOptions="[5, 10, 20, 50, 100]"
+                            ref="dt"
+                        >
+                            <Column header="Alternatif">
+                                <template #body="{ data }">
+                                    {{ formatName(data.alternatif) }}
+                                </template>
+                            </Column>
+                            <Column
+                                v-for="(kriteriaItem, index) in kriteria"
+                                :key="index"
+                                :field="
+                                    'normalisasi.' + kriteriaItem.kode_kriteria
+                                "
+                                :header="kriteriaItem.kode_kriteria"
+                                :body="
+                                    (data) =>
+                                        data.normalisasi[
+                                            kriteriaItem.kode_kriteria
+                                        ]?.toFixed(3) || '-'
+                                "
+                            />
+                        </DataTable>
+                    </template>
+                </Card>
 
-                    <!-- Dynamically render the remaining columns, skipping the first 3 columns -->
-                    <Column
-                        v-for="(column, index) in props.column"
-                        :key="index"
-                        :field="`${column}`"
-                        :header="column"
-                        style="min-width: 12rem"
-                    />
-                </DataTable>
+                <!-- Tabel Hasil Akhir -->
+                <Card>
+                    <template #title>
+                        <h2>Hasil Akhir</h2>
+                    </template>
+                    <template #content>
+                        <DataTable
+                            :value="filteredResult"
+                            paginator
+                            ref="dt"
+                            showGridlines
+                            size="null"
+                            :rows="10"
+                            :rowsPerPageOptions="[5, 10, 20, 50, 100]"
+                            :responsiveLayout="'scroll'"
+                        >
+                            <Column header="Alternatif">
+                                <template #body="{ data }">
+                                    {{ formatName(data.alternatif) }}
+                                </template>
+                            </Column>
+                            <Column field="qi" header="Nilai Qi" />
+                            <Column field="ranking" header="Ranking" />
+                        </DataTable>
+                    </template>
+                </Card>
             </div>
         </template>
-    </Layout>
+    </TemplateLayout>
 </template>
-
-<script></script>
-
-<style scoped></style>

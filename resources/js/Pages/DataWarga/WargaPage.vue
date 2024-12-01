@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, defineProps } from "vue";
+import { onMounted, ref, defineProps, computed, watch } from "vue";
 import { Head, useForm, router } from "@inertiajs/vue3";
 import TemplateLayout from "@/Layouts/TemplateLayout.vue";
 import {
@@ -17,10 +17,12 @@ import {
     InputIcon,
     FloatLabel,
     Message,
+    Card,
+    Tag,
 } from "primevue";
 import { FilterMatchMode } from "@primevue/core/api";
 
-// Props
+// Mendefinisikan props yang diterima oleh komponen
 const pageProps = defineProps({
     periode: Array,
     kriteria: Array,
@@ -30,15 +32,17 @@ const pageProps = defineProps({
     auth: Object,
 });
 
+// Mengambil data otentikasi dari props
 const auth = pageProps.auth;
 
-// State
+// Mendefinisikan state yang diperlukan
 const kriteria = ref([]);
 const subkriteria = ref([]);
 const Wargadata = ref([]);
 const showForm = ref(false);
 const isLoading = ref(false);
 
+// Opsi untuk dropdown Agama
 let optionsAgama = [
     { label: "Islam", value: "islam" },
     { label: "Kristen", value: "kristen" },
@@ -48,13 +52,15 @@ let optionsAgama = [
     { label: "Konghucu", value: "konghucu" },
 ];
 
+// Opsi untuk dropdown Jenis Kelamin
 let optionsJk = [
     { label: "Laki-laki", value: "laki-laki" },
     { label: "Perempuan", value: "perempuan" },
 ];
 
-// Form
+// Mengatur form warga
 const formWarga = useForm({
+    id: "",
     provinsi: "papua",
     kabupaten: "sentani",
     kampung: "sereh",
@@ -70,40 +76,103 @@ const formWarga = useForm({
     kriteria_values: {},
 });
 
-// Filters
+const showAllData = ref(false);
+
+const tampilkanSemuaData = () => {
+    showAllData.value = true; // Set state untuk menampilkan semua data
+    formWarga.periode_id = null; // Reset periode_id jika perlu
+};
+
+const filteredWargadata = computed(() => {
+    if (showAllData.value) {
+        return Wargadata.value; // Tampilkan semua data jika tombol "Tampilkan Semua Data" ditekan
+    }
+    if (!formWarga.periode_id) {
+        return []; // Tampilkan semua data dengan status 0 jika periode belum dipilih
+    }
+    return Wargadata.value.filter(
+        (warga) => warga.tahun_id === formWarga.periode_id && warga.status === 0
+    );
+});
+
+// Data kolom tabel
+const tableColumns = computed(() => {
+    // Kolom dinamis dari kriteria
+    const dynamicColumns = kriteria.value
+        .filter((kriteriaItem) =>
+            Wargadata.value.length > 0
+                ? kriteriaItem.nama_kriteria in Wargadata.value[0]
+                : false
+        )
+        .map((kriteriaItem) => ({
+            field: kriteriaItem.nama_kriteria,
+            header: formatName(kriteriaItem.nama_kriteria),
+        }));
+
+    return [...dynamicColumns];
+});
+
+const formatCell = (value) => {
+    if (typeof value === "string") {
+        return value
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    }
+    return value; // Jika bukan string, kembalikan nilai asli
+};
+
+watch(
+    () => formWarga.periode_id,
+    (newValue) => {
+        if (newValue) {
+            showAllData.value = false; // Reset ketika periode dipilih
+        }
+    }
+);
+
+// Filter untuk DataTable
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
-// PrimeVue Utilities
+// Menggunakan utilitas PrimeVue
 const toast = useToast();
 const confirm = useConfirm();
 let dt = ref();
 
-// Lifecycle
+const formType = ref("add");
+
+// Lifecycle hook untuk inisialisasi data
 onMounted(() => {
     initializeData();
     checkNotif();
 });
 
-// Initialize Data
+// Fungsi untuk menginisialisasi data
 const initializeData = () => {
-    kriteria.value = pageProps.kriteria;
-    subkriteria.value = pageProps.subkriteria;
+    kriteria.value = Array.isArray(pageProps.kriteria)
+        ? pageProps.kriteria
+        : [];
+    subkriteria.value = Array.isArray(pageProps.subkriteria)
+        ? pageProps.subkriteria
+        : [];
 
-    // Setup form default values
+    // Menyiapkan nilai default untuk form
     kriteria.value.forEach((item) => {
         formWarga.kriteria_values[item.nama_kriteria] = null;
     });
 
-    // Map warga data with index
-    Wargadata.value = pageProps.warga.map((warga, index) => ({
-        index: index + 1,
-        ...warga,
-    }));
+    // Memetakan data warga dengan indeks
+    Wargadata.value = Array.isArray(pageProps.warga)
+        ? pageProps.warga.map((warga, index) => ({
+              index: index + 1,
+              ...warga,
+          }))
+        : []; // Jika pageProps.warga bukan array, set Wargadata ke array kosong
 };
 
-// Format column names for better readability
+// Format nama kolom untuk keterbacaan yang lebih baik
 const formatName = (columnName) => {
     return columnName
         .split("_")
@@ -111,17 +180,19 @@ const formatName = (columnName) => {
         .join(" ");
 };
 
-// Filter subkriteria by kriteria ID
+// Filter subkriteria berdasarkan ID kriteria
 const getSubkriteria = (kriteriaId) => {
-    return subkriteria.value
+    const filteredSubkriteria = subkriteria.value
         .filter((sub) => sub.kriteria_id === kriteriaId)
         .map((sub) => ({
             ...sub,
             nama_subkriteria_formatted: formatName(sub.nama_subkriteria),
         }));
+
+    return Array.isArray(filteredSubkriteria) ? filteredSubkriteria : []; // Pastikan mengembalikan array
 };
 
-// Notifications
+// Fungsi untuk memeriksa notifikasi
 const checkNotif = () => {
     if (pageProps.flash.notif_status) {
         setTimeout(() => {
@@ -136,7 +207,7 @@ const checkNotif = () => {
     }
 };
 
-// Form Actions
+// Fungsi untuk menambah data warga
 const tambahData = () => {
     showForm.value = false;
     formWarga.post(route("AddWarga"), {
@@ -149,13 +220,140 @@ const tambahData = () => {
                 summary: "Error",
                 detail: "Gagal menambahkan data.",
                 life: 4000,
-            }),
-                (showForm.value = true);
+            });
+            showForm.value = true;
         },
     });
 };
 
-// Refresh Page
+// Fungsi untuk mengedit data warga
+const editData = (data) => {
+    formWarga.reset();
+    formWarga.id = data.id;
+    formWarga.nomor_kk = data.nomor_kk;
+    formWarga.periode_id = data.tahun_id;
+    formWarga.nama_kk = data.nama_kk;
+    formWarga.provinsi = data.provinsi;
+    formWarga.rt = data.rt;
+    formWarga.rw = data.rw;
+    formWarga.asal_suku = data.asal_suku;
+    formWarga.pekerjaan = data.pekerjaan;
+    formWarga.agama = data.agama;
+    formWarga.jenis_kelamin = data.jenis_kelamin;
+
+    const kriteriaArray = Array.isArray(kriteria.value)
+        ? kriteria.value
+        : Object.values(kriteria.value || {});
+
+    for (const kriteriaItem of kriteriaArray) {
+        const namaKriteria = kriteriaItem.nama_kriteria;
+        const subkriteriaList = getSubkriteria(kriteriaItem.id);
+
+        // Pastikan subkriteriaList adalah array
+        if (!Array.isArray(subkriteriaList)) {
+            console.warn(`Subkriteria untuk ${namaKriteria} tidak valid.`);
+            formWarga.kriteria_values[namaKriteria] = null; // Atau nilai default lainnya
+            continue; // Lanjutkan ke iterasi berikutnya
+        }
+
+        // Cek jika nilai dari data ada dalam kriteria_values
+        if (
+            data &&
+            typeof data === "object" &&
+            data[namaKriteria] !== undefined
+        ) {
+            const nilaiKriteria = data[namaKriteria];
+
+            // Mencari subkriteria yang cocok dengan nilai dari kriteria
+            const matchedSubkriteria = subkriteriaList.find(
+                (sub) => sub.nama_subkriteria === nilaiKriteria
+            );
+
+            // Jika ada yang cocok, set nilai ke formWarga.kriteria_values
+            if (matchedSubkriteria) {
+                formWarga.kriteria_values[namaKriteria] =
+                    matchedSubkriteria.nama_subkriteria;
+            } else {
+                formWarga.kriteria_values[namaKriteria] = null; // Atau nilai default lainnya
+            }
+        } else {
+            // Jika tidak ada nilai, set ke null atau nilai default
+            formWarga.kriteria_values[namaKriteria] = null;
+        }
+    }
+
+    formType.value = "edit";
+    showForm.value = true;
+};
+
+// Fungsi untuk memperbarui data warga
+const updateData = () => {
+    formWarga.put(route("UpdateWarga", formWarga.id), {
+        onSuccess: () => {
+            refreshPage();
+            showForm.value = false;
+        },
+        onError: () => {
+            toast.add({
+                severity: "error",
+                summary: "Error",
+                detail: "Gagal memperbarui data.",
+                life: 4000,
+            });
+        },
+    });
+};
+
+const HitungWaspas = () => {
+    formWarga.post(route("seleksi"), {
+        onSuccess: () => {
+            checkNotif();
+        },
+    });
+};
+// const HitungWaspas = () => {
+//     formWarga.post(route("seleksi"), {
+//         onSuccess: () => {
+//             checkNotif();
+//         },
+//     });
+// };
+
+const hapusData = (data) => {
+    formWarga.id = data.id;
+    confirm.require({
+        message: `Yakin ingin menghapus data kriteria : ${data.nama_kk} ?`,
+        header: "Peringatan",
+        icon: "pi pi-exclamation-triangle",
+        rejectProps: {
+            label: "Batal",
+            severity: "secondary",
+            outlined: true,
+        },
+        acceptProps: {
+            label: "Hapus",
+            severity: "danger",
+        },
+        reject: () => {
+            formWarga.reset();
+        },
+        accept: () => {
+            formWarga.delete(route("DeleteWarga", formWarga.id), {
+                onSuccess: () => refreshPage(),
+                onError: () => {
+                    toast.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: `Gagal menghapus data ${data.nama_kk}`,
+                        life: 4000,
+                    });
+                },
+            });
+        },
+    });
+};
+
+// Fungsi untuk menyegarkan halaman
 const refreshPage = () => {
     checkNotif();
     showForm.value = false;
@@ -164,7 +362,7 @@ const refreshPage = () => {
     setTimeout(() => (isLoading.value = false), 600);
 };
 
-// Export DataTable
+// Fungsi untuk mengekspor DataTable ke CSV
 const exportCSV = () => {
     dt.value.exportCSV();
 };
@@ -180,23 +378,29 @@ const exportCSV = () => {
                 <!-- Header -->
                 <div class="flex justify-between items-center">
                     <h1 class="text-xl font-semibold">Data Warga</h1>
-                    <Button
-                        label="Tambah Data"
-                        icon="pi pi-plus"
-                        severity="success"
-                        @click="showForm = true"
-                    />
+                    <div v-if="pageProps.auth.user.role == 'super_admin'">
+                        <Button
+                            label="Tambah Data"
+                            icon="pi pi-plus"
+                            size="small"
+                            @click="showForm = true"
+                        />
+                    </div>
                 </div>
 
                 <!-- Dialog: Tambah Data -->
                 <Dialog
-                    header="Tambah Data Warga"
+                    :header="formType === 'add' ? 'Tambah data' : 'Edit data'"
                     :visible="showForm"
                     modal
                     :style="{ width: '70%' }"
                     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
                 >
-                    <form @submit.prevent="tambahData">
+                    <form
+                        @submit.prevent="
+                            formType === 'add' ? tambahData() : updateData()
+                        "
+                    >
                         <div
                             class="grid gap-4 mt-2 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
                         >
@@ -206,7 +410,7 @@ const exportCSV = () => {
                                     <Select
                                         fluid
                                         v-model="formWarga.periode_id"
-                                        :options="periode"
+                                        :options="pageProps.periode"
                                         optionValue="id"
                                         optionLabel="tahun"
                                         :invalid="!!formWarga.errors.periode_id"
@@ -457,6 +661,7 @@ const exportCSV = () => {
                                 </Message>
                             </div>
 
+                            <!-- Kriteria -->
                             <div v-for="item in kriteria" :key="item.id">
                                 <FloatLabel variant="on">
                                     <Select
@@ -478,10 +683,9 @@ const exportCSV = () => {
                                     />
                                     <label
                                         v-if="getSubkriteria(item.id).length"
-                                        >{{
-                                            formatName(item.nama_kriteria)
-                                        }}</label
                                     >
+                                        {{ formatName(item.nama_kriteria) }}
+                                    </label>
                                 </FloatLabel>
 
                                 <Message
@@ -503,7 +707,7 @@ const exportCSV = () => {
                             </div>
                         </div>
 
-                        <!-- Buttons -->
+                        <!-- Tombol Simpan dan Batal -->
                         <div class="flex justify-end space-x-2 mt-4">
                             <Button
                                 label="Simpan"
@@ -521,43 +725,230 @@ const exportCSV = () => {
                     </form>
                 </Dialog>
 
-                <!-- DataTable -->
-                <DataTable
-                    ref="dt"
-                    :value="Wargadata"
-                    stripedRows
-                    paginator
-                    :rows="10"
-                    scrollable
-                    :filters="filters"
+                <form
+                    class="flex items-center justify-between"
+                    @submit.prevent="HitungWaspas"
                 >
-                    <template #empty>
-                        <div class="text-center">Tidak ada data</div>
-                    </template>
-                    <template #header>
-                        <div class="flex justify-between items-center">
-                            <Button
-                                icon="pi pi-external-link"
-                                label="Export"
-                                @click="exportCSV"
-                                size="small"
-                            />
-                            <IconField>
-                                <InputIcon
-                                    ><i class="pi pi-search me-4"
-                                /></InputIcon>
-                                <InputText
-                                    v-model="filters.global.value"
-                                    placeholder="Cari Data Warga"
+                    <div>
+                        <Button
+                            label="Tampilkan Semua Data"
+                            icon="pi pi-eye"
+                            size="small"
+                            @click="tampilkanSemuaData"
+                            class="me-5"
+                        />
+                    </div>
+
+                    <div class="flex w-[30%] items-center">
+                        <div class="w-full">
+                            <FloatLabel variant="on">
+                                <Select
+                                    fluid
+                                    id="periode_tabel"
+                                    v-model="formWarga.periode_id"
+                                    :options="pageProps.periode"
+                                    optionValue="id"
+                                    optionLabel="tahun"
                                 />
-                            </IconField>
+                                <label>Periode</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="formWarga.errors.periode_id"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
+                                {{ formWarga.errors.periode_id }}
+                            </Message>
                         </div>
+
+                        <Button
+                            class="ms-2"
+                            icon="pi pi-calculator"
+                            label="Seleksi"
+                            size="small"
+                            type="submit"
+                        />
+                    </div>
+                </form>
+
+                <!-- DataTable untuk menampilkan data warga -->
+                <Card>
+                    <template #content>
+                        <DataTable
+                            ref="dt"
+                            :value="filteredWargadata"
+                            stripedRows
+                            paginator
+                            :rows="10"
+                            scrollable
+                            responsiveLayout="scroll"
+                            :filters="filters"
+                            resizableColumns
+                            :rowsPerPageOptions="[5, 10, 20, 50, 100]"
+                            columnResizeMode="fit"
+                            size="large"
+                        >
+                            <!-- Pesan jika data kosong -->
+                            <template #empty>
+                                <div class="text-left">
+                                    Data Warga tidak Ditemukan
+                                </div>
+                            </template>
+
+                            <!-- Header tabel -->
+                            <template #header>
+                                <div class="flex justify-between items-center">
+                                    <Button
+                                        icon="pi pi-external-link"
+                                        label="Export"
+                                        @click="exportCSV"
+                                        size="small"
+                                    />
+                                    <IconField>
+                                        <InputIcon>
+                                            <i class="pi pi-search me-4" />
+                                        </InputIcon>
+                                        <InputText
+                                            v-model="filters.global.value"
+                                            placeholder="Cari Data Warga"
+                                        />
+                                    </IconField>
+                                </div>
+                            </template>
+
+                            <Column
+                                frozen
+                                alignFrozen="left"
+                                field="index"
+                                header="No"
+                            />
+
+                            <Column sortable frozen header="Periode">
+                                <template #body="{ data }">
+                                    {{ formatName(data.tahun) }}
+                                </template>
+                            </Column>
+                            <Column sortable frozen header="Nama Warga">
+                                <template #body="{ data }">
+                                    {{ formatName(data.nama_kk) }}
+                                </template>
+                            </Column>
+                            <Column field="nomor_kk" header="Nomor KK" />
+                            <Column sortable header="Provinsi">
+                                <template #body="{ data }">
+                                    {{ formatName(data.provinsi) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="Kabupaten">
+                                <template #body="{ data }">
+                                    {{ formatName(data.kabupaten) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="Kabupaten">
+                                <template #body="{ data }">
+                                    {{ formatName(data.kabupaten) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="Asal Suku">
+                                <template #body="{ data }">
+                                    {{ formatName(data.asal_suku) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="Agama">
+                                <template #body="{ data }">
+                                    {{ formatName(data.agama) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="Jenis Kelamin">
+                                <template #body="{ data }">
+                                    {{ formatName(data.jenis_kelamin) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="RT">
+                                <template #body="{ data }">
+                                    {{ formatName(data.rt) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="RW">
+                                <template #body="{ data }">
+                                    {{ formatName(data.rw) }}
+                                </template>
+                            </Column>
+                            <Column sortable header="Pekerjaan">
+                                <template #body="{ data }">
+                                    {{ formatName(data.pekerjaan) }}
+                                </template>
+                            </Column>
+
+                            <!-- Render kolom -->
+                            <!-- Header dan Field -->
+                            <template
+                                v-for="col in tableColumns"
+                                :key="col.field"
+                            >
+                                <Column :header="col.header" sortable>
+                                    <template #body="{ data }">
+                                        {{ formatCell(data[col.field]) }}
+                                    </template>
+                                </Column>
+                            </template>
+
+                            <Column
+                                sortable
+                                frozen
+                                alignFrozen="right"
+                                header="Menerima Bantuan"
+                            >
+                                <template #body="{ data }">
+                                    <div v-if="data.status == 1">
+                                        <Tag
+                                            icon="pi pi-check"
+                                            severity="success"
+                                            value="Telah menerima"
+                                        ></Tag>
+                                    </div>
+                                    <div v-else>
+                                        <Tag
+                                            icon="pi pi-times"
+                                            severity="danger"
+                                            value="Belum menerima"
+                                        ></Tag>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <div
+                                v-if="pageProps.auth.user.role == 'super_admin'"
+                            >
+                                <Column
+                                    header="Opsi"
+                                    frozen
+                                    alignFrozen="right"
+                                >
+                                    <template #body="{ data }">
+                                        <div class="flex gap-2 items-center">
+                                            <Button
+                                                size="small"
+                                                @click="editData(data)"
+                                                icon="pi pi-pen-to-square"
+                                                severity="info"
+                                                outlined
+                                            />
+                                            <Button
+                                                size="small"
+                                                @click="hapusData(data)"
+                                                icon="pi pi-trash"
+                                                severity="danger"
+                                                outlined
+                                            />
+                                        </div>
+                                    </template>
+                                </Column>
+                            </div>
+                        </DataTable>
                     </template>
-                    <Column field="index" header="No" />
-                    <Column field="nomor_kk" header="Nomor KK" />
-                    <Column field="nama_kk" header="Nama Kepala Keluarga" />
-                    <Column field="status_rumah" header="Status Rumah" />
-                </DataTable>
+                </Card>
             </div>
         </template>
     </TemplateLayout>

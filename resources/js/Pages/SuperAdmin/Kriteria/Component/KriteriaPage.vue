@@ -245,6 +245,7 @@ const updateData = (id) => {
                 ref="dt"
                 :value="dataFix"
                 paginator
+                :rowsPerPageOptions="[5, 10, 20, 50, 100]"
                 :rows="10"
             >
                 <template #header>

@@ -14,8 +14,9 @@ const props = defineProps({
 
 const classes = computed(() =>
     props.active
-        ? "inline-flex items-center gap-4 py-1 font-medium leading-5 text-blue-400 font-wight-semibold border-b-2 border-blue-500 focus:border-blue-400 transition duration-150 ease-in-out"
-        : "inline-flex items-center gap-4  font-medium leading-5 hover:text-blue-400 focus:text-blue-500 text-gray-500 transition duration-150 ease-in-out"
+    ? "inline-flex items-center gap-4 py-1 font-medium leading-5 text-blue-400 font-wight-semibold border-b-2 border-blue-500 w-full focus:border-blue-400 transition duration-150 ease-in-out shake"
+    : "inline-flex items-center gap-4 font-medium leading-5 hover:text-blue-400 focus:text-blue-500 text-gray-500 transition duration-150 ease-in-out shake"
+
 );
 </script>
 
@@ -28,5 +29,25 @@ const classes = computed(() =>
 <style scoped>
 .active {
     color: blue !important;
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-4px);
+    }
+    50% {
+        transform: translateX(4px);
+    }
+    75% {
+        transform: translateX(-4px);
+    }
+}
+
+.shake:hover {
+    animation: shake 0.4s ease-in-out;
 }
 </style>

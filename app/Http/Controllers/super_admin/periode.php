@@ -13,7 +13,7 @@ class periode extends Controller
 
     public function periodePage()
     {
-        $dataPeriode = ModelPeriode::all();
+        $dataPeriode = ModelPeriode::orderBy('tahun', 'ASC')->get();
 
         return Inertia::render('SuperAdmin/Periode', [
             'periode' => $dataPeriode
@@ -73,10 +73,10 @@ class periode extends Controller
     public function delete_periode($id)
     {
         // Temukan kategori berdasarkan ID
-        $kategori = ModelPeriode::findOrFail($id);
+        $periode = ModelPeriode::findOrFail($id);
 
-        // Hapus data kategori
-        $delete = $kategori->delete();
+        // Hapus data periode
+        $delete = $periode->delete();
 
         // Periksa apakah penghapusan berhasil
         if ($delete) {

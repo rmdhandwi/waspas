@@ -11,6 +11,7 @@ import {
     Select,
     ConfirmDialog,
     useConfirm,
+    
 } from "primevue";
 
 const props = defineProps({
@@ -66,7 +67,7 @@ const updateUser = () => {
             <div class="flex flex-col gap-[1rem]">
                 <!-- header -->
                 <div class="p-4">
-                    <h1 class="text-lg">Detail Pengguna</h1>
+                    <h1 class="text-lg font-weigh">Detail Pengguna</h1>
                 </div>
                 <!-- header selesai -->
 

@@ -1,13 +1,10 @@
 <script setup>
-
 import GuestLayout from "@/Layouts/GuestLayout.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
 import { onMounted, ref } from "vue";
 import { Head, useForm, router } from "@inertiajs/vue3";
-import { Toast, useToast } from "primevue";
+import { Toast, useToast, Password, Button, InputText } from "primevue";
 
 onMounted(() => {
     checkNotif();
@@ -55,7 +52,6 @@ const refreshPage = () => {
 const form = useForm({
     username: "",
     password: "",
-    remember: false,
 });
 
 const submit = () => {
@@ -69,45 +65,58 @@ const submit = () => {
     <GuestLayout>
         <Head title="Log in" />
         <Toast position="top-center" group="tc" />
-        <form @submit.prevent="submit">
+
+        <form @submit.prevent="submit" class="p-4">
+            <!-- Username Field -->
             <div>
                 <InputLabel for="username" value="Username" />
-                <TextInput
+                <InputText
                     id="username"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="mt-1 w-full"
                     v-model="form.username"
-                    required
                     autofocus
-                    autocomplete="username"
                 />
-                <InputError class="mt-2" :message="form.errors.username" />
+                <InputError
+                    class="mt-2 text-sm text-red-600"
+                    :message="form.errors.username"
+                />
             </div>
 
+            <!-- Password Field -->
             <div class="mt-4">
                 <InputLabel for="password" value="Password" />
-
-                <TextInput
+                <Password
+                    fluid
                     id="password"
-                    type="password"
-                    class="mt-1 block w-full"
                     v-model="form.password"
-                    required
+                    :feedback="false"
                     autocomplete="current-password"
+                    toggleMask
+                    class="mt-1"
                 />
-
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError
+                    class="mt-2 text-sm text-red-600"
+                    :message="form.errors.password"
+                />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    class="ms-4"
+            <!-- Submit Button -->
+            <div class="mt-6 flex justify-center">
+                <Button
+                    class="w-full py-3 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
+                    unstyled
+                    type="submit"
                 >
-                    Log in
-                </PrimaryButton>
+                    Masuk
+                </Button>
             </div>
         </form>
     </GuestLayout>
 </template>
+
+<style scoped>
+/* Custom styling for spacing and focus */
+</style>

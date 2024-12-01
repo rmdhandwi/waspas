@@ -25,79 +25,74 @@ const roleUser = props.auth.user.role;
             </div>
             <!-- header selesai -->
 
-            <!-- side menu super admin-->
-            <div
-                class="flex flex-col gap-[1.8rem] items-start px-2"
-                v-if="roleUser === 'super_admin'"
-            >
+            <!-- side menu super admin -->
+            <div class="flex flex-col gap-[1.8rem] items-start px-2">
                 <NavLink
-                    :href="route('super_admin.dashboard')"
-                    :active="route().current('super_admin.dashboard')"
+                    :href="route('dashboard')"
+                    :active="route().current('dashboard')"
                 >
                     <i class="pi pi-home"></i><span>Dashboard</span>
                 </NavLink>
-                <NavLink
-                    :href="route('super_admin.pengguna')"
-                    :active="
-                        route().current('super_admin.pengguna') ||
-                        route().current('super_admin.view.pengguna')
-                    "
-                >
-                    <i class="pi pi-users"></i><span>Pengguna</span>
-                </NavLink>
-                <NavLink
-                    :href="route('periode')"
-                    :active="route().current('periode')"
-                >
-                    <i class="pi pi-calendar"></i><span>Periode</span>
-                </NavLink>
 
-                <NavLink
-                    :href="route('super_admin.kriteria')"
-                    :active="
-                        route().current('super_admin.kriteria') ||
-                        route().current('super_admin.view.sub_kriteria')
-                    "
-                >
-                    <i class="pi pi-file"></i><span>Kriteria</span>
-                </NavLink>
+                <!-- Menu khusus untuk super_admin -->
+                <template v-if="roleUser === 'super_admin'">
+                    <NavLink
+                        :href="route('super_admin.pengguna')"
+                        :active="
+                            route().current('super_admin.pengguna') ||
+                            route().current('super_admin.view.pengguna')
+                        "
+                    >
+                        <i class="pi pi-users"></i><span>Pengguna</span>
+                    </NavLink>
 
+                    <NavLink
+                        :href="route('periode')"
+                        :active="route().current('periode')"
+                    >
+                        <i class="pi pi-calendar"></i><span>Periode</span>
+                    </NavLink>
+
+                    <NavLink
+                        :href="route('super_admin.kriteria')"
+                        :active="
+                            route().current('super_admin.kriteria') ||
+                            route().current('super_admin.view.sub_kriteria')
+                        "
+                    >
+                        <i class="pi pi-list"></i><span>Kriteria</span>
+                    </NavLink>
+                </template>
+
+                <!-- Menu umum untuk semua role -->
                 <NavLink
                     :href="route('wargapage')"
-                    :active="route().current('wargapage')"
+                    :active="
+                        route().current('wargapage') ||
+                        route().current('seleksi')
+                    "
                 >
                     <i class="pi pi-inbox"></i><span>Data Warga</span>
                 </NavLink>
-            </div>
 
-            <!-- side menu admin-->
-            <div
-                class="flex flex-col gap-[1.8rem] items-start px-2"
-                v-else-if="roleUser === 'admin'"
-            >
                 <NavLink
-                    :href="route('admin.dashboard')"
-                    :active="route().current('admin.dashboard')"
+                    :href="route('hasil')"
+                    :active="route().current('hasil')"
                 >
-                    <i class="pi pi-home"></i><span>Dashboard</span>
-                </NavLink>
-                <NavLink
-                    :href="route('wargapage')"
-                    :active="route().current('wargapage')"
-                >
-                    <i class="pi pi-users"></i><span>Data Warga</span>
+                    <i class="pi pi-chart-bar"></i><span>Hasil Seleksi</span>
                 </NavLink>
             </div>
         </div>
+
+        <!-- Logout button -->
         <Button
             as="a"
             severity="danger"
             @click="deleteLocalStorage()"
-            label="logout"
+            label="Logout"
             icon="pi pi-power-off"
             :href="route('logout')"
         />
-        <!-- side menu selesai -->
     </div>
 </template>
 

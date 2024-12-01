@@ -22,52 +22,57 @@ class Authentication extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the input credentials (excluding role)
+        // Validasi input (username dan password wajib diisi)
         $credentials = $request->validate([
-            'username' => ['required'],
-            'password' => ['required'],
+            'username' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string'],
+        ], [
+            'username.required' => 'Kolom username tidak boleh kosong',
+            'password.required' => 'Kolom password tidak boleh kosong'
         ]);
 
+        // Cek apakah kredensial valid
+        if (Auth::attempt($credentials)) {
+            $user = auth()->user(); // Ambil user yang berhasil login
+            $userRole = $user->role; // Ambil role user
 
-        if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']])) {
+            // Regenerate session untuk menghindari session fixation
+            $request->session()->regenerate();
 
-            // Cek role
-            $userRole = auth()->user()->role;
-
+            // Buat notifikasi sukses
             $notification = [
                 'notif_status' => 'success',
-                'notif_message' => 'Selamat Datang, ' . auth()->user()->username,
+                'notif_message' => 'Selamat Datang, ' . $user->username,
                 'is_login' => true,
             ];
 
-            $request->session()->regenerate();
-
-
-            switch ($userRole) {
-                case 'super_admin':
-                    return redirect()->route('super_admin.dashboard')->with($notification);
-                case 'admin':
-                    return redirect()->route('admin.dashboard')->with($notification);
-                default:
-                    Auth::logout();
-                    $errorNotification = [
-                        'notif_status' => 'error',
-                        'notif_message' => 'Role tidak valid atau tidak diizinkan.',
-                        'is_login' => true,
-                    ];
-                    return redirect()->route('login')->with($errorNotification);
+            // Alihkan berdasarkan role user
+            if ($userRole === 'super_admin') {
+                return redirect()->route('dashboard')->with($notification);
+            } elseif ($userRole === 'admin') {
+                return redirect()->route('dashboard')->with($notification);
+            } else {
+                // Logout jika role tidak valid
+                Auth::logout();
+                $errorNotification = [
+                    'notif_status' => 'error',
+                    'notif_message' => 'Role tidak valid atau tidak diizinkan.',
+                    'is_login' => false,
+                ];
+                return redirect()->route('login')->with($errorNotification);
             }
         }
 
+        // Jika kredensial salah
         $errorNotification = [
             'notif_status' => 'error',
             'notif_message' => 'Username atau password salah!',
-            'is_login' => true,
+            'is_login' => false,
         ];
 
-        // Redirect back to the login page with an error notification
         return redirect()->route('login')->with($errorNotification);
     }
+
 
 
 

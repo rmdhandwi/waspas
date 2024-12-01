@@ -12,6 +12,8 @@ import Aura from "@primevue/themes/aura";
 import ToastService from "primevue/toastservice";
 import ConfirmationService from "primevue/confirmationservice";
 import { definePreset } from "@primevue/themes";
+import Chart from "primevue/chart";
+
 
 // Import KeyFilter
 import KeyFilter from "primevue/keyfilter";
@@ -49,6 +51,7 @@ createInertiaApp({
 
         // Register KeyFilter globally
         app.directive("keyfilter", KeyFilter);
+        app.component("Chart", Chart);
 
         return app
             .use(plugin)

@@ -17,11 +17,11 @@ class kriteria extends Controller
     //
     public function kriteria_page()
     {
-
         $dataKriteria = ModelsKriteria::all();
-        $dataSubKriteria = SubKriteria::with(['kriteria' => function ($query) {
-            $query->select('id', 'nama_kriteria', 'kode_kriteria');
-        }])->get();
+        $dataSubKriteria = SubKriteria::orderBy('kode_sub', 'ASC')
+            ->with(['kriteria' => function ($query) {
+                $query->select('id', 'nama_kriteria', 'kode_kriteria');
+            }])->get();
 
         return Inertia::render('SuperAdmin/Kriteria/Kriteria', [
             'dataKriteria' => $dataKriteria,

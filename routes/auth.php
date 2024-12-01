@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\Authentication;
 use App\Http\Controllers\super_admin\kriteria;
 use App\Http\Controllers\super_admin\periode;
+use App\Http\Controllers\super_admin\seleksi;
 use App\Http\Controllers\super_admin\subKriteria;
 use App\Http\Controllers\super_admin\superAdminController;
 use App\Http\Controllers\super_admin\user;
@@ -16,7 +17,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     //    super_admin
-    Route::get('Dashboard', [superAdminController::class, 'Dashboard'])->name('super_admin.dashboard');
+    Route::get('Dashboard', [superAdminController::class, 'Dashboard'])->name('dashboard');
     
     Route::get('Pengguna', [superAdminController::class, 'UsersPage'])->name('super_admin.pengguna');
     Route::post('Pengguna', [user::class, 'tambahPengguna'])->name('super_admin.tambah.pengguna');
@@ -39,13 +40,15 @@ Route::middleware('auth')->group(function () {
     Route::put('UpdateSub/{id}', [subKriteria::class, 'update_subkriteria'])->name('UpdateSub');
     Route::delete('DeleteSub/{id}', [subKriteria::class, 'hapus_subkriteria'])->name('DeleteSub');
 
-    Route::get('admin/Dashboard', [adminController::class, 'Dashboard'])->name('admin.dashboard');
-
     Route::get('Warga', [Warga::class, 'wargaPage'])->name('wargapage');
     Route::post('AddWarga', [Warga::class, 'store'])->name('AddWarga');
     Route::put('UpdateWarga/{id}', [Warga::class, 'updateDataWarga'])->name('UpdateWarga');
-    Route::delete('DeleteWarga/{id}', [Warga::class, 'hapusDataWarga'])->name('DeleteWarga');
-
+    Route::delete('DeleteWarga/{id}', [Warga::class, 'deleteWarga'])->name('DeleteWarga');
+    
+    Route::post('Seleksi', [seleksi::class, 'hitungWaspas'])->name('seleksi');
+    Route::post('Tes', [seleksi::class, 'hitungWaspas'])->name('seleksi');
+    Route::post('Hasil', [seleksi::class, 'saveHasilAkhir'])->name('simpanDataHasil');
+    Route::get('HasilSeleksi', [seleksi::class, 'hasilpage'])->name('hasil');
 
     Route::get('/logout', [Authentication::class, 'destroy'])->name('logout');
 });
