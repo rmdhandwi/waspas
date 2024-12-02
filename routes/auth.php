@@ -13,6 +13,7 @@ use App\Http\Controllers\Warga;
 
 Route::middleware('guest')->group(function () {
     Route::post('login', [Authentication::class, 'store'])->name('loginSubmit');
+    Route::post('register', [user::class, 'register'])->name('registerSubmit');
 });
 
 Route::middleware('auth')->group(function () {

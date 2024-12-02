@@ -186,7 +186,7 @@ const setChartOptions = () => {
                                     class="flex justify-between items-center text-white"
                                 >
                                     <i
-                                        class="pi pi-list"
+                                        class="pi pi-tag"
                                         style="font-size: 2rem"
                                     ></i>
                                     <div class="flex flex-col items-center">
@@ -214,7 +214,7 @@ const setChartOptions = () => {
                                     class="flex justify-between items-center text-white"
                                 >
                                     <i
-                                        class="pi pi-users"
+                                        class="pi pi-tags"
                                         style="font-size: 2rem"
                                     ></i>
                                     <div class="flex flex-col items-center">

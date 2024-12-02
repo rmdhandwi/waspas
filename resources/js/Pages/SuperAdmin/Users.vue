@@ -435,7 +435,7 @@ const confirmDelete = (data) => {
                                     <Tag
                                         v-else="data.role == 'warga'"
                                         icon="pi pi-user"
-                                        severity=""
+                                        severity="secondary"
                                         value="Warga"
                                     ></Tag>
                                 </template>

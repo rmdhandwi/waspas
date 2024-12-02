@@ -4,7 +4,24 @@ import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import { onMounted, ref } from "vue";
 import { Head, useForm, router } from "@inertiajs/vue3";
-import { Toast, useToast, Password, Button, InputText } from "primevue";
+import {
+    Toast,
+    useToast,
+    Password,
+    Button,
+    InputText,
+    Dialog,
+    FloatLabel,
+    Message,
+} from "primevue";
+
+let showDialog = ref(false);
+
+const registerShow = () => {
+    formRegister.reset();
+    formRegister.clearErrors();
+    showDialog.value = true;
+};
 
 onMounted(() => {
     checkNotif();
@@ -54,6 +71,18 @@ const form = useForm({
     password: "",
 });
 
+const formRegister = useForm({
+    nama: "",
+    username: "",
+    password: "",
+});
+
+const register = () => {
+    formRegister.post(route("registerSubmit"), {
+        onSuccess: () => refreshPage(),
+    });
+};
+
 const submit = () => {
     form.post(route("loginSubmit"), {
         onSuccess: () => refreshPage(),
@@ -101,6 +130,16 @@ const submit = () => {
                 />
             </div>
 
+            <div class="flex justify-end mt-2">
+                <Button
+                    @click="registerShow"
+                    class="hover:text-blue-600 text-sm transition underline"
+                    unstyled
+                >
+                    Daftar Sekarang?
+                </Button>
+            </div>
+
             <!-- Submit Button -->
             <div class="mt-6 flex justify-center">
                 <Button
@@ -114,6 +153,94 @@ const submit = () => {
                 </Button>
             </div>
         </form>
+
+        <Dialog
+            v-model:visible="showDialog"
+            :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+            modal
+            header="Daftar Akun"
+            :style="{ width: '25rem' }"
+        >
+            <form
+                @submit.prevent="register"
+                autocomplete="off"
+            >
+                <div class="grid grid-cols-1 gap-4 mt-2">
+                    <!-- Nama -->
+                    <div>
+                        <FloatLabel variant="on">
+                            <InputText
+                                fluid
+                                id="nama"
+                                v-model="formRegister.nama"
+                                :invalid="!!formRegister.errors.nama"
+                            />
+                            <label for="nama">Nama Lengkap</label>
+                        </FloatLabel>
+                        <Message
+                            v-if="formRegister.errors.nama"
+                            severity="error"
+                            variant="simple"
+                            size="small"
+                        >
+                            {{ formRegister.errors.nama }}
+                        </Message>
+                    </div>
+
+                    <!-- Username -->
+                    <div>
+                        <FloatLabel variant="on">
+                            <InputText
+                                fluid
+                                id="username"
+                                v-model="formRegister.username"
+                                :invalid="!!formRegister.errors.username"
+                            />
+                            <label for="username">Username</label>
+                        </FloatLabel>
+                        <Message
+                            v-if="formRegister.errors.username"
+                            severity="error"
+                            variant="simple"
+                            size="small"
+                        >
+                            {{ formRegister.errors.username }}
+                        </Message>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <FloatLabel variant="on">
+                            <Password
+                                fluid
+                                toggleMask
+                                :feedback="false"
+                                v-model="formRegister.password"
+                                :invalid="!!formRegister.errors.password"
+                            />
+                            <label>Password</label>
+                        </FloatLabel>
+                        <Message
+                            v-if="formRegister.errors.password"
+                            severity="error"
+                            variant="simple"
+                            size="small"
+                        >
+                            {{ formRegister.errors.password }}
+                        </Message>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="mt-4 flex justify-end">
+                    <Button
+                        label="Daftar"
+                        icon="pi pi-check-circle"
+                        type="submit"
+                    />
+                </div>
+            </form>
+        </Dialog>
     </GuestLayout>
 </template>
 

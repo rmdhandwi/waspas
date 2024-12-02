@@ -59,6 +59,40 @@ class user extends Controller
         }
     }
 
+    public function register(Request $req)
+    {
+        $req->validate(
+            [
+                'nama' => 'required',
+                'username' => 'required|unique:users',
+                'password' => 'required',
+            ],
+            [
+                '*.required' => 'Kolom wajib diisi',
+                'username.unique' => 'Username telah digunakan'
+            ]
+        );
+
+        $insert = ModelsUser::create([
+            'nama' => $req->nama,
+            'username' => $req->username,
+            'password' => Hash::make($req->password),
+            'role' => 'warga',
+            'created_at' => Carbon::now('Asia/Jayapura')
+        ]);
+
+        if ($insert) {
+            return redirect()->back()->with([
+                'notif_status' => 'success',
+                'notif_message' => 'Berhasil membuat akaun. Silahkan Login!',
+            ]);
+        } else {
+            return redirect()->back()->with([
+                'notif_status' => 'failed',
+                'notif_message' => 'Gagal membuat akun. Daftarkan akun kembali!',
+            ]);
+        }
+    }
 
     public function updateUser(Request $req, $id)
     {

@@ -65,22 +65,30 @@ const roleUser = props.auth.user.role;
                 </template>
 
                 <!-- Menu umum untuk semua role -->
-                <NavLink
-                    :href="route('wargapage')"
-                    :active="
-                        route().current('wargapage') ||
-                        route().current('seleksi')
-                    "
+                <template
+                    v-if="roleUser === 'perangkat' || roleUser === 'kepala'"
                 >
-                    <i class="pi pi-inbox"></i><span>Data Warga</span>
-                </NavLink>
-
-                <NavLink
-                    :href="route('hasil')"
-                    :active="route().current('hasil')"
+                    <NavLink
+                        :href="route('wargapage')"
+                        :active="
+                            route().current('wargapage') ||
+                            route().current('seleksi')
+                        "
+                    >
+                        <i class="pi pi-inbox"></i><span>Data Warga</span>
+                    </NavLink>
+                </template>
+                <template
+                    v-if="roleUser === 'perangkat' || roleUser === 'kepala' || roleUser === 'warga'"
                 >
-                    <i class="pi pi-chart-bar"></i><span>Hasil Seleksi</span>
-                </NavLink>
+                    <NavLink
+                        :href="route('hasil')"
+                        :active="route().current('hasil')"
+                    >
+                        <i class="pi pi-chart-bar"></i
+                        ><span>Hasil Seleksi</span>
+                    </NavLink>
+                </template>
             </div>
         </div>
 

@@ -11,9 +11,6 @@ const props = defineProps({
     auth: Object,
 });
 
-const auth = props.auth;
-
-
 </script>
 
 <template>
@@ -33,7 +30,8 @@ const auth = props.auth;
                     <h1 class="text-[1.3rem]">
                         Sistem Penentuan Penerima Bantuan Perbaikan Rumah
                     </h1>
-                    <div>
+                    <div class="flex items-center">
+                        <p class="me-2">{{ props.auth.user.nama }}</p>
                         <Avatar :image="ImgSrc" size="large" shape="circle" />
                     </div>
                 </div>
