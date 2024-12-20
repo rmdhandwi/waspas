@@ -100,10 +100,11 @@ class seleksi extends Controller
                 'id' => $alt->id,
                 'alternatif' => $alt->nama_kk, // Nama alternatif (misalnya nama KK)
                 'data' => $filteredData,      // Data yang relevan berdasarkan kriteria
+                'penghasilan' => $alt->penghasilan, // Ambil data penghasilan
+                'jumlah_penghuni' => $alt->jumlah_penghuni, // Ambil data jumlah penghuni
+                'status_kepemilikan_rumah' => $alt->status_kepemilikan_rumah, // Ambil data status kepemilikan rumah
             ];
         }
-
-
 
         // Proses normalisasi dan perhitungan Waspas
         foreach ($filteredWarga as &$alt) {
@@ -163,7 +164,7 @@ class seleksi extends Controller
             $alt['qi'] = round(0.5 * $qi + 0.5 * $prod, 3);
         }
 
-        // Urutkan hasil berdasarkan Qi
+        // Urutkan hasil berdasarkan Qi (tidak perlu mengurutkan berdasarkan penghasilan atau jumlah penghuni)
         usort($filteredWarga, function ($a, $b) {
             return $b['qi'] <=> $a['qi']; // Descending order
         });
@@ -180,6 +181,7 @@ class seleksi extends Controller
             'kriteria' => $kriteria,    // Kriteria untuk header tabel
         ]);
     }
+
 
     public function saveHasilAkhir(Request $request)
     {
@@ -252,12 +254,72 @@ class seleksi extends Controller
 
     public function hasilpage()
     {
-        // Ambil data seleksi dengan relasi warga
-        $dataSeleksi = hasil::with(['warga:id,nama_kk,nomor_kk'])->get();
+        // Ambil data hasil seleksi dengan relasi warga dan periode
+        $dataSeleksi = hasil::with(['warga', 'warga.periode'])->get();
 
-        // Kembalikan view dengan data hasil
+        // Ambil semua data periode untuk dropdown atau referensi lainnya
+        $periode = Periode::all();
+
+        // Kembalikan view dengan data hasil dan periode
         return Inertia::render('SuperAdmin/Hasil', [
-            'hasil' => $dataSeleksi
+            'hasil' => $dataSeleksi,
+            'periode' => $periode
+        ]);
+    }
+
+
+    public function cetakPage(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'periode' => 'required|numeric',
+            'tgl' => 'required|date',
+            'oleh' => 'required|string',
+            'setuju' => 'required|string',
+        ], [
+            '*.required' => 'Kolom wajib diisi.',
+            'tgl.date' => 'Format tanggal tidak valid.',
+            '*.numeric' => 'Kolom harus berisi angka.',
+        ]);
+
+        // Ambil data periode berdasarkan ID
+        $periode = Periode::find($request->periode);
+        if (!$periode) {
+            return redirect()->back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Periode tidak ditemukan.',
+            ]);
+        }
+
+        // Ambil data warga berdasarkan periode
+        $warga = Warga::where('tahun_id', $request->periode)->get();
+        if ($warga->isEmpty()) {
+            return redirect()->back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Data warga kosong untuk periode yang dipilih.',
+            ]);
+        }
+
+        // Ambil hasil berdasarkan warga yang ditemukan
+        $wargaIds = $warga->pluck('id'); // Ambil ID semua warga
+        $dataHasil = Hasil::whereIn('warga_id', $wargaIds)
+        ->with(['warga', 'warga.periode'])
+        ->get();
+
+        if ($dataHasil->isEmpty()) {
+            return redirect()->back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Tidak ditemukan data hasil untuk dicetak.',
+            ]);
+        }
+
+        // Render halaman cetak dengan data yang ditemukan
+        return Inertia::render('Cetak', [
+            'tahun' => $periode->tahun,
+            'tgl' => $request->tgl,
+            'oleh' => $request->oleh,
+            'setuju' => $request->setuju,
+            'hasil' => $dataHasil,
         ]);
     }
 }

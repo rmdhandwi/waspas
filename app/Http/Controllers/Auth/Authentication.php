@@ -71,9 +71,6 @@ class Authentication extends Controller
         return redirect()->route('login')->with($errorNotification);
     }
 
-
-
-
     public function destroy(Request $request)
     { // Logout pengguna dan hapus session
         Auth::logout();

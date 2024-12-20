@@ -18,6 +18,8 @@ import {
     Card,
     ConfirmDialog,
     useConfirm,
+    IconField,
+    InputIcon
 } from "primevue";
 import { FilterMatchMode } from "@primevue/core/api";
 
@@ -71,9 +73,9 @@ let roleOptions = [
 
 // Mount
 onMounted(() => {
-    dataUser.value = props.users.map((p, i) => ({
+    dataUser.value = props.users.map((user, i) => ({
         index: i + 1,
-        ...p,
+        ...user,
     }));
 
     checkNotif();
@@ -370,7 +372,7 @@ const confirmDelete = (data) => {
                             <Button
                                 icon="pi pi-external-link"
                                 label="Export"
-                                @click="exportCSV($event)"
+                                @click="exportCSV"
                                 size="small"
                             />
                             <IconField>
@@ -379,7 +381,7 @@ const confirmDelete = (data) => {
                                 </InputIcon>
                                 <InputText
                                     v-model="filters['global'].value"
-                                    placeholder="Cari Data Periode"
+                                    placeholder="Cari Data User"
                                 />
                             </IconField>
                         </div>
@@ -413,7 +415,7 @@ const confirmDelete = (data) => {
                                 field="username"
                                 header="Username"
                             />
-                            <Column sortable header="Nama lengkap">
+                            <Column sortable header="Nama lengkap" field="nama">
                                 <template #body="{ data }">
                                     {{ formatName(data.nama) }}
                                 </template>
@@ -421,19 +423,19 @@ const confirmDelete = (data) => {
                             <Column sortable field="role" header="Role">
                                 <template #body="{ data }">
                                     <Tag
-                                        v-if="data.role == 'perangkat'"
+                                        v-if="data.role === 'perangkat'"
                                         icon="pi pi-user"
                                         severity="info"
                                         value="Perangkat Kampung"
                                     ></Tag>
                                     <Tag
-                                        v-else-if="data.role == 'kepala'"
+                                        v-else-if="data.role === 'kepala'"
                                         icon="pi pi-user"
                                         severity="warn"
                                         value="Kepala Kampung"
                                     ></Tag>
                                     <Tag
-                                        v-else="data.role == 'warga'"
+                                        v-else="data.role === 'warga'"
                                         icon="pi pi-user"
                                         severity="secondary"
                                         value="Warga"

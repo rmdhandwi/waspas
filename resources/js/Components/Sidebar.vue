@@ -2,7 +2,7 @@
 import NavLink from "@/Components/NavLink.vue";
 import Button from "primevue/button";
 import Image from "primevue/image";
-import ImgSrc from "../../img/super_admin_profile.jpg";
+
 
 const props = defineProps({
     auth: Object,
@@ -18,10 +18,10 @@ const roleUser = props.auth.user.role;
         <div class="flex flex-col gap-[2rem]">
             <!-- header -->
             <div class="size-full p-2">
-                <div class="w-full h-[100px] rounded-md overflow-hidden">
-                    <Image :src="ImgSrc" width="200" />
+                <div class="w-full h-[100px] rounded-md overflow-hidden flex flex-col justify-center items-center">
+                    <Image src="logo.png" width="60" />
                 </div>
-                <h1 class="text-xl">Kampung Sereh</h1>
+                <h1 class="text-xl text-center">Kampung Sereh</h1>
             </div>
             <!-- header selesai -->
 

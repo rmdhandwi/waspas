@@ -27,12 +27,12 @@ const props = defineProps({
                 <div
                     class="bg-gray-100 rounded-lg w-full flex items-center justify-between p-2"
                 >
-                    <h1 class="text-[1.3rem]">
+                    <h1 class="text-[1.3rem] drop-shadow-md">
                         Sistem Penentuan Penerima Bantuan Perbaikan Rumah
                     </h1>
-                    <div class="flex items-center">
+                    <div class="flex items-center p-2">
                         <p class="me-2">{{ props.auth.user.nama }}</p>
-                        <Avatar :image="ImgSrc" size="large" shape="circle" />
+                        <i class="pi pi-user"></i>
                     </div>
                 </div>
                 <!-- header selesai -->

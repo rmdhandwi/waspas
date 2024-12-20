@@ -10,8 +10,8 @@ class periode extends Model
     use HasFactory;
     public $timestamps = false;
     protected $table = 'periode';
+    protected $primaryKey = 'id';
     protected $fillable = [
-        'id',
         'tahun',
         'created_at',
         'updated_at'
@@ -19,6 +19,6 @@ class periode extends Model
 
     public function warga()
     {
-        return $this->belongsTo(warga::class, 'periode_id');
+        return $this->hasMany(dataWarga::class, 'tahun_id', 'id');
     }
 }

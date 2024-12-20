@@ -19,7 +19,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     //    super_admin
     Route::get('Dashboard', [superAdminController::class, 'Dashboard'])->name('dashboard');
-    
+
     Route::get('Pengguna', [user::class, 'userpage'])->name('super_admin.pengguna');
     Route::post('Pengguna', [user::class, 'tambahPengguna'])->name('tambahUser');
     Route::put('UpdatePengguna/{id}', [user::class, 'updateUser'])->name('updateUser');
@@ -29,7 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::post('Periode/Add', [periode::class, 'tambah_periode'])->name('AddPeriode');
     Route::put('updatePeriode/{id}', [periode::class, 'update_periode'])->name('EditPeriode');
     Route::delete('deletePeriode/{id}}', [periode::class, 'delete_periode'])->name('DeletePeriode');
-    
+
     Route::get('Kriteria', [kriteria::class, 'kriteria_page'])->name('super_admin.kriteria');
     Route::post('Kriteria', [kriteria::class, 'tambah_kriteria'])->name('super_admin.tambah.kriteria');
     Route::get('Kriteria/view/{id}', [kriteria::class, 'view_kriteria']);
@@ -44,11 +44,13 @@ Route::middleware('auth')->group(function () {
     Route::post('AddWarga', [Warga::class, 'store'])->name('AddWarga');
     Route::put('UpdateWarga/{id}', [Warga::class, 'updateDataWarga'])->name('UpdateWarga');
     Route::delete('DeleteWarga/{id}', [Warga::class, 'deleteWarga'])->name('DeleteWarga');
-    
+
     Route::post('Seleksi', [seleksi::class, 'hitungWaspas'])->name('seleksi');
-    Route::post('Tes', [seleksi::class, 'hitungWaspas'])->name('seleksi');
+    // Route::post('Tes', [seleksi::class, 'hitungWaspas'])->name('seleksi');
     Route::post('Hasil', [seleksi::class, 'saveHasilAkhir'])->name('simpanDataHasil');
-    Route::get('HasilSeleksi', [seleksi::class, 'hasilpage'])->name('hasil');
+    Route::get('Hasil Seleksi', [seleksi::class, 'hasilpage'])->name('hasil');
+
+    Route::post('Cetak Hasil', [seleksi::class, 'cetakPage'])->name('cetakPage');
 
     Route::get('/logout', [Authentication::class, 'destroy'])->name('logout');
 });

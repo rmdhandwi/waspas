@@ -44,7 +44,7 @@ const showForm = ref(false);
 const showFormAdd = () => {
     formWarga.reset();
     showForm.value = true;
-    formType.value = 'add';
+    formType.value = "add";
 };
 
 const isLoading = ref(false);
@@ -92,14 +92,29 @@ const tampilkanSemuaData = () => {
 
 const filteredWargadata = computed(() => {
     if (showAllData.value) {
-        return Wargadata.value; // Tampilkan semua data jika tombol "Tampilkan Semua Data" ditekan
+        return Wargadata.value.map((warga, index) => ({
+            ...warga,
+            index: index + 1, // Tetap reset index
+        })); // Tampilkan semua data jika tombol "Tampilkan Semua Data" ditekan
     }
     if (!formWarga.periode_id) {
-        return []; // Tampilkan semua data dengan status 0 jika periode belum dipilih
+        return Wargadata.value
+            .filter((warga) => warga.status === "Belum Menerima")
+            .map((warga, index) => ({
+                ...warga,
+                index: index + 1, // Reset index
+            })); // Tampilkan data dengan status 0 jika periode belum dipilih
     }
-    return Wargadata.value.filter(
-        (warga) => warga.tahun_id === formWarga.periode_id && warga.status === 0
-    );
+    return Wargadata.value
+        .filter(
+            (warga) =>
+                warga.tahun_id === formWarga.periode_id &&
+                warga.status === "Belum Menerima"
+        )
+        .map((warga, index) => ({
+            ...warga,
+            index: index + 1, // Reset index
+        }));
 });
 
 // Data kolom tabel
@@ -175,6 +190,7 @@ const initializeData = () => {
         ? pageProps.warga.map((warga, index) => ({
               index: index + 1,
               ...warga,
+              status: warga.status === 1 ? "Telah Menerima" : "Belum Menerima",
           }))
         : []; // Jika pageProps.warga bukan array, set Wargadata ke array kosong
 };
@@ -770,6 +786,7 @@ const exportCSV = () => {
                         </div>
 
                         <Button
+                            v-if="pageProps.auth.user.role == 'kepala'"
                             class="ms-2"
                             icon="pi pi-calculator"
                             label="Seleksi"
@@ -781,6 +798,26 @@ const exportCSV = () => {
 
                 <!-- DataTable untuk menampilkan data warga -->
                 <Card>
+                    <!-- Header tabel -->
+                    <template #header>
+                        <div class="flex justify-between items-center p-4">
+                            <Button
+                                icon="pi pi-external-link"
+                                label="Export"
+                                @click="exportCSV"
+                                size="small"
+                            />
+                            <IconField>
+                                <InputIcon>
+                                    <i class="pi pi-search me-4" />
+                                </InputIcon>
+                                <InputText
+                                    v-model="filters.global.value"
+                                    placeholder="Cari Data Warga"
+                                />
+                            </IconField>
+                        </div>
+                    </template>
                     <template #content>
                         <DataTable
                             ref="dt"
@@ -803,27 +840,6 @@ const exportCSV = () => {
                                 </div>
                             </template>
 
-                            <!-- Header tabel -->
-                            <template #header>
-                                <div class="flex justify-between items-center">
-                                    <Button
-                                        icon="pi pi-external-link"
-                                        label="Export"
-                                        @click="exportCSV"
-                                        size="small"
-                                    />
-                                    <IconField>
-                                        <InputIcon>
-                                            <i class="pi pi-search me-4" />
-                                        </InputIcon>
-                                        <InputText
-                                            v-model="filters.global.value"
-                                            placeholder="Cari Data Warga"
-                                        />
-                                    </IconField>
-                                </div>
-                            </template>
-
                             <Column
                                 frozen
                                 alignFrozen="left"
@@ -831,58 +847,84 @@ const exportCSV = () => {
                                 header="No"
                             />
 
-                            <Column sortable frozen header="Periode">
+                            <Column
+                                sortable
+                                field="tahun"
+                                frozen
+                                header="Periode"
+                            >
                                 <template #body="{ data }">
                                     {{ formatName(data.tahun) }}
                                 </template>
                             </Column>
-                            <Column sortable frozen header="Nama Warga">
+                            <Column
+                                sortable
+                                field="nama_kk"
+                                frozen
+                                header="Nama Warga"
+                            >
                                 <template #body="{ data }">
                                     {{ formatName(data.nama_kk) }}
                                 </template>
                             </Column>
                             <Column field="nomor_kk" header="Nomor KK" />
-                            <Column sortable header="Provinsi">
+                            <Column sortable field="provinsi" header="Provinsi">
                                 <template #body="{ data }">
                                     {{ formatName(data.provinsi) }}
                                 </template>
                             </Column>
-                            <Column sortable header="Kabupaten">
+                            <Column
+                                sortable
+                                field="kabupaten"
+                                header="Kabupaten"
+                            >
                                 <template #body="{ data }">
                                     {{ formatName(data.kabupaten) }}
                                 </template>
                             </Column>
-                            <Column sortable header="Kabupaten">
+                            <Column sortable field="kampung" header="Kampung">
                                 <template #body="{ data }">
-                                    {{ formatName(data.kabupaten) }}
+                                    {{ formatName(data.kampung) }}
                                 </template>
                             </Column>
-                            <Column sortable header="Asal Suku">
+                            <Column
+                                sortable
+                                field="asal_suku"
+                                header="Asal Suku"
+                            >
                                 <template #body="{ data }">
                                     {{ formatName(data.asal_suku) }}
                                 </template>
                             </Column>
-                            <Column sortable header="Agama">
+                            <Column sortable field="agama" header="Agama">
                                 <template #body="{ data }">
                                     {{ formatName(data.agama) }}
                                 </template>
                             </Column>
-                            <Column sortable header="Jenis Kelamin">
+                            <Column
+                                sortable
+                                field="jenis_kelamin"
+                                header="Jenis Kelamin"
+                            >
                                 <template #body="{ data }">
                                     {{ formatName(data.jenis_kelamin) }}
                                 </template>
                             </Column>
-                            <Column sortable header="RT">
+                            <Column sortable field="rt" header="RT">
                                 <template #body="{ data }">
                                     {{ formatName(data.rt) }}
                                 </template>
                             </Column>
-                            <Column sortable header="RW">
+                            <Column sortable field="rw" header="RW">
                                 <template #body="{ data }">
                                     {{ formatName(data.rw) }}
                                 </template>
                             </Column>
-                            <Column sortable header="Pekerjaan">
+                            <Column
+                                sortable
+                                field="pekerjaan"
+                                header="Pekerjaan"
+                            >
                                 <template #body="{ data }">
                                     {{ formatName(data.pekerjaan) }}
                                 </template>
@@ -894,7 +936,11 @@ const exportCSV = () => {
                                 v-for="col in tableColumns"
                                 :key="col.field"
                             >
-                                <Column :header="col.header" sortable>
+                                <Column
+                                    :header="col.header"
+                                    sortable
+                                    :field="[col.field]"
+                                >
                                     <template #body="{ data }">
                                         {{ formatCell(data[col.field]) }}
                                     </template>
@@ -905,10 +951,11 @@ const exportCSV = () => {
                                 sortable
                                 frozen
                                 alignFrozen="right"
-                                header="Menerima Bantuan"
+                                header="Status"
+                                field="status"
                             >
                                 <template #body="{ data }">
-                                    <div v-if="data.status == 1">
+                                    <div v-if="data.status == 'Telah Menerima'">
                                         <Tag
                                             icon="pi pi-check"
                                             severity="success"

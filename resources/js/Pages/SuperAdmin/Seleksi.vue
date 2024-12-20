@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref, watch } from "vue";
+import { defineProps, ref, watch, onMounted } from "vue";
 import { Head, router } from "@inertiajs/vue3";
 import TemplateLayout from "@/Layouts/TemplateLayout.vue";
 import {
@@ -20,8 +20,13 @@ const props = defineProps({
 });
 
 const dt = ref(null); // Referensi untuk DataTable
-const exportCount = ref(10); // Default jumlah data yang ingin disimpan
+const exportCount = ref(null); // Default jumlah data yang ingin disimpan
 const filteredResult = ref([]);
+
+// Set default exportCount ke jumlah result pada mounted
+onMounted(() => {
+    exportCount.value = props.result.length; // Set default exportCount ke jumlah hasil yang ada
+});
 
 // Watch untuk memfilter hasil berdasarkan `exportCount`
 watch(
@@ -119,6 +124,8 @@ const formatName = (columnName) => {
                             paginator
                             :rows="10"
                             showGridlines
+                            resizableColumns
+                            columnResizeMode="fit"
                             responsiveLayout="scroll"
                             :rowsPerPageOptions="[5, 10, 20, 50, 100]"
                             ref="dt"
@@ -158,6 +165,8 @@ const formatName = (columnName) => {
                             ref="dt"
                             showGridlines
                             size="null"
+                            resizableColumns
+                            columnResizeMode="fit"
                             :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50, 100]"
                             :responsiveLayout="'scroll'"
@@ -168,6 +177,27 @@ const formatName = (columnName) => {
                                 </template>
                             </Column>
                             <Column field="qi" header="Nilai Qi" />
+                            <Column field="penghasilan" header="Penghasilan">
+                                <template #body="{ data }">
+                                    {{ formatName(data.penghasilan) }}
+                                </template>
+                            </Column>
+                            <Column
+                                field="jumlah_penghuni"
+                                header="Jumlah Anggota keluarga"
+                            >
+                                <template #body="{ data }">
+                                    {{ formatName(data.jumlah_penghuni) }}
+                                </template>
+                            </Column>
+                            <Column
+                                field="status_kepemilikan_rumah"
+                                header="Kepemilikan Rumah"
+                            >
+                                <template #body="{ data }">
+                                    {{ formatName(data.status_kepemilikan_rumah) }}
+                                </template>
+                            </Column>
                             <Column field="ranking" header="Ranking" />
                         </DataTable>
                     </template>

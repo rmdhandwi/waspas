@@ -21,7 +21,7 @@ class hasil extends Model
 
     public function warga()
     {
-        return $this->belongsTo(warga::class);
+        return $this->belongsTo(dataWarga::class, 'warga_id', 'id');
     }
 
 }
