@@ -19,6 +19,7 @@ import {
     Message,
     Card,
     Tag,
+    FileUpload,
 } from "primevue";
 import { FilterMatchMode } from "@primevue/core/api";
 
@@ -40,6 +41,51 @@ const kriteria = ref([]);
 const subkriteria = ref([]);
 const Wargadata = ref([]);
 const showForm = ref(false);
+const visibleImport = ref(false);
+const src = ref(null);
+const errorMessage = ref("");
+
+const formCSV = useForm({
+    file: null,
+});
+
+const importCSV = () => {
+    src.value = null;
+    errorMessage.value = "";
+    visibleImport.value = true;
+    formCSV.file = null;
+};
+
+const uploadCSV = () => {
+    formCSV.post(route("uploadCSV"), {
+        onSuccess: () => {
+            refreshPage();
+        },
+        onError: (errors) => {
+            // Handle error display
+            console.error(errors);
+        },
+    });
+};
+
+const onFileSelect = (event) => {
+    formCSV.file = event.files[0];
+
+    if (!formCSV.file || !formCSV.file.name.endsWith(".csv")) {
+        formCSV.errors.file = null;
+        errorMessage.value = "Hanya file dengan ekstensi .csv yang diizinkan.";
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+        src.value = e.target.result;
+        errorMessage.value = ""; // Hapus pesan kesalahan jika file valid
+    };
+
+    reader.readAsDataURL(formCSV.file);
+};
 
 const showFormAdd = () => {
     formWarga.reset();
@@ -748,6 +794,63 @@ const exportCSV = () => {
                     </form>
                 </Dialog>
 
+                <Dialog
+                    v-model:visible="visibleImport"
+                    modal
+                    header="Import file CSV"
+                    :style="{ width: '25vw' }"
+                    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+                >
+                    <form @submit.prevent="uploadCSV">
+                        <div class="card flex flex-col items-center gap-6">
+                            <FileUpload
+                                mode="basic"
+                                @select="onFileSelect"
+                                customUpload
+                                auto
+                                size="small"
+                                severity="secondary"
+                                class="p-button-outlined"
+                            />
+                            <p v-if="errorMessage" class="text-red-500 text-sm">
+                                {{ errorMessage }}
+                            </p>
+                            <Message
+                                v-if="formCSV.errors.file"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
+                                {{ formCSV.errors.file }}
+                            </Message>
+                            <div
+                                v-if="src"
+                                class="w-full sm:w-64 flex flex-col items-center"
+                            >
+                                <p class="text-sm text-gray-500">
+                                    File CSV telah dipilih:
+                                </p>
+                                <img
+                                    src="csv.png"
+                                    alt="CSV Icon"
+                                    class="w-16 h-16"
+                                />
+                                <p class="text-sm text-gray-500 mt-2">
+                                    File CSV berhasil dimuat.
+                                </p>
+                            </div>
+                            <Button
+                                type="submit"
+                                label="Upload"
+                                size="small"
+                                :disabled="formCSV.file === null ? true : false"
+                                icon="pi pi-upload"
+                                variant="outlined"
+                            />
+                        </div>
+                    </form>
+                </Dialog>
+
                 <form
                     class="flex items-center justify-between"
                     @submit.prevent="HitungWaspas"
@@ -759,6 +862,15 @@ const exportCSV = () => {
                             size="small"
                             @click="tampilkanSemuaData"
                             class="me-5"
+                        />
+
+                        <Button
+                            v-if="pageProps.auth.user.role === 'perangkat'"
+                            label="import CSV"
+                            size="small"
+                            severity="success"
+                            icon="pi pi-file-excel"
+                            @click="importCSV"
                         />
                     </div>
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\dataWarga;
 use App\Models\Kriteria;
 use App\Models\periode;
 use App\Models\SubKriteria;
@@ -20,8 +19,8 @@ class Warga extends Controller
         $dataPeriode = periode::all();
         $dataKriteria = Kriteria::all();
         $dataSubkriteria = SubKriteria::all();
-        $dataWarga = ModelsWarga::join('periode', 'warga.tahun_id', '=', 'periode.id') 
-            ->select('warga.*', 'periode.tahun') 
+        $dataWarga = ModelsWarga::join('periode', 'warga.tahun_id', '=', 'periode.id')
+            ->select('warga.*', 'periode.tahun')
             ->orderBy('warga.nama_kk', 'asc')
             ->get();
         return Inertia::render('DataWarga/WargaPage', [
@@ -190,6 +189,105 @@ class Warga extends Controller
             return redirect()->back()->with([
                 'notif_status' => 'success',
                 'notif_message' => 'Warga berhasil dihapus.'
+            ]);
+        }
+    }
+
+    public function upload(Request $request)
+    {
+        // Validasi file yang diunggah
+        $request->validate([
+            'file' => 'required|mimes:csv,txt'
+        ], [
+            'file.required' => 'File harus diunggah.',
+            'file.mimes' => 'Hanya file CSV yang diperbolehkan.'
+        ]);
+
+        // Proses unggahan file dan penyimpanan data ke database
+        try {
+            $file = $request->file('file');
+            $csvData = array_map('str_getcsv', file($file));
+
+            // Lewati baris pertama jika itu adalah header
+            $header = array_shift($csvData);
+
+            // Array untuk menyimpan nomor KK yang sudah diproses
+            $processedNomorKk = [];
+
+            foreach ($csvData as $row) {
+                $nomorKk = $row[1];
+                $tahunId = $row[0]; // Tahun dari CSV (row[0])
+
+                // Cek apakah nomor KK sudah ada dalam array (untuk cek duplikasi dalam file)
+                if (in_array($nomorKk, $processedNomorKk)) {
+                    return redirect()->back()->with([
+                        'notif_status' => 'error',
+                        'notif_message' => 'Nomor KK ' . $nomorKk . ' duplikat dalam file CSV!'
+                    ]);
+                }
+
+                // Cek apakah nomor KK sudah ada di database
+                $existingData = ModelsWarga::where('nomor_kk', $nomorKk)->first();
+
+                if ($existingData) {
+                    return redirect()->back()->with([
+                        'notif_status' => 'error',
+                        'notif_message' => 'Nomor KK ' . $nomorKk . ' sudah terdaftar! dengan nama: ' . $existingData->nama_kk
+                    ]);
+                }
+
+                // Cek apakah tahun_id ada di tabel periode
+                $periode = periode::where('tahun', $tahunId)->first(); // Pastikan `Period` adalah model untuk tabel periode
+
+                if (!$periode) {
+                    return redirect()->back()->with([
+                        'notif_status' => 'error',
+                        'notif_message' => 'Tahun ID ' . $tahunId . ' tidak ditemukan di tabel periode!'
+                    ]);
+                }
+
+                // Gunakan id dari periode yang ditemukan
+                $periodeId = $periode->id;
+
+                // Pemetaan kolom CSV ke kolom database
+                ModelsWarga::create([
+                    'tahun_id' => $periodeId, // Gunakan id periode
+                    'nomor_kk' => $nomorKk,
+                    'nama_kk' => strtolower(str_replace(' ', '_', $row[2])),
+                    'provinsi' => strtolower(str_replace(' ', '_', $row[3])),
+                    'kabupaten' => strtolower(str_replace(' ', '_', $row[4])),
+                    'kampung' => strtolower(str_replace(' ', '_', $row[5])),
+                    'rt' => strtolower(str_replace(' ', '_', $row[6])),
+                    'rw' => strtolower(str_replace(' ', '_', $row[7])),
+                    'asal_suku' => strtolower(str_replace(' ', '_', $row[8])),
+                    'pekerjaan' => strtolower(str_replace(' ', '_', $row[9])),
+                    'agama' => strtolower(str_replace(' ', '_', $row[10])),
+                    'status' => strtolower(str_replace(' ', '_', $row[11])),
+                    'jenis_kelamin' => strtolower(str_replace(' ', '_', $row[12])),
+                    'created_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
+                    'updated_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
+                    'penghasilan' => strtolower(str_replace(' ', '_', $row[13])),
+                    'status_kepemilikan_rumah' => strtolower(str_replace(' ', '_', $row[14])),
+                    'struktur_bangunan_rumah' => strtolower(str_replace(' ', '_', $row[15])),
+                    'status_kepemilikan_lahan' => strtolower(str_replace(' ', '_', $row[16])),
+                    'status_legalitas_lahan' => strtolower(str_replace(' ', '_', $row[17])),
+                    'jumlah_penghuni' => strtolower(str_replace(' ', '_', $row[18])),
+                    'kepemilikan_sanitasi' => strtolower(str_replace(' ', '_', $row[19])),
+                    'tempat_pembuangan_tinja' => strtolower(str_replace(' ', '_', $row[20])),
+                ]);
+
+                // Tambahkan nomor KK yang telah diproses ke dalam array
+                $processedNomorKk[] = $nomorKk;
+            }
+
+            return redirect()->back()->with([
+                'notif_status' => 'success',
+                'notif_message' => 'File CSV berhasil diunggah dan data berhasil disimpan!'
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Terjadi kesalahan saat memproses file: ' . $e->getMessage()
             ]);
         }
     }

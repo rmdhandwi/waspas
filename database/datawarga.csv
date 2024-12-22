@@ -1,0 +1,5 @@
+tahun_id,nomor_kk,nama_kk,provinsi,kabupaten,kampung,rt,rw,asal_suku,pekerjaan,agama,status,jenis_kelamin,penghasilan,status_kepemilikan_rumah,struktur_bangunan_rumah,status_kepemilikan_lahan,status_legalitas_lahan,jumlah_penghuni,kepemilikan_sanitasi,tempat_pembuangan_tinja
+2024,1234567892,John Doe,West Java,Bandung,Kampung A,01,02,Java,Farmer,Islam,0,Male,5000000,Own,Concrete,Own,Legal,4,Yes,Septic Tank
+2024,1234567893,Jane Doe,East Java,Surabaya,Kampung B,03,04,Sundanese,Teacher,Christian,0,Female,3000000,Lease,Wood,Lease,Not Legal,2,No,Public Toilet
+2024,1234567894,James Smith,Bali,Denpasar,Kampung C,05,06,Balinese,Entrepreneur,Buddhist,0,Male,7000000,Own,Brick,Own,Legal,5,Yes,Septic Tank
+2024,1234567895,Mary Johnson,Yogyakarta,Yogyakarta,Kampung D,07,08,Chinese,Doctor,Islam,0,Female,8000000,Own,Concrete,Own,Legal,3,Yes,Septic Tank

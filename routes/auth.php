@@ -44,6 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::post('AddWarga', [Warga::class, 'store'])->name('AddWarga');
     Route::put('UpdateWarga/{id}', [Warga::class, 'updateDataWarga'])->name('UpdateWarga');
     Route::delete('DeleteWarga/{id}', [Warga::class, 'deleteWarga'])->name('DeleteWarga');
+    
+    Route::post('UpluadWarga', [Warga::class, 'upload'])->name('uploadCSV');
 
     Route::post('Seleksi', [seleksi::class, 'hitungWaspas'])->name('seleksi');
     // Route::post('Tes', [seleksi::class, 'hitungWaspas'])->name('seleksi');

@@ -106,6 +106,18 @@ class seleksi extends Controller
             ];
         }
 
+        // Validasi jika ada nilai kriteria yang 0
+        foreach ($filteredWarga as $alt) {
+            foreach ($alt['data'] as $key => $value) {
+                if ($value == 0) {
+                    return back()->with([
+                        'notif_status' => 'error',
+                        'notif_message' => "Data kolom $key tidak sesuai dengan subkriteria. Mohon periksa kembali data Warga {$alt['alternatif']}.",
+                    ]);
+                }
+            }
+        }
+
         // Proses normalisasi dan perhitungan Waspas
         foreach ($filteredWarga as &$alt) {
             $normalizedValues = [];
@@ -164,14 +176,21 @@ class seleksi extends Controller
             $alt['qi'] = round(0.5 * $qi + 0.5 * $prod, 3);
         }
 
-        // Urutkan hasil berdasarkan Qi (tidak perlu mengurutkan berdasarkan penghasilan atau jumlah penghuni)
+        // Urutkan hasil berdasarkan Qi
         usort($filteredWarga, function ($a, $b) {
             return $b['qi'] <=> $a['qi']; // Descending order
         });
 
-        // Berikan ranking berdasarkan Qi
+        // Berikan ranking dan status kelayakan berdasarkan Qi
         foreach ($filteredWarga as $index => &$alt) {
             $alt['ranking'] = $index + 1;
+
+            // Tentukan status kelayakan
+            if ($alt['qi'] < 0.585) {
+                $alt['status'] = 'Tidak Layak';
+            } else {
+                $alt['status'] = 'Layak';
+            }
         }
 
         // Kirim hasil ke tampilan
@@ -303,8 +322,8 @@ class seleksi extends Controller
         // Ambil hasil berdasarkan warga yang ditemukan
         $wargaIds = $warga->pluck('id'); // Ambil ID semua warga
         $dataHasil = Hasil::whereIn('warga_id', $wargaIds)
-        ->with(['warga', 'warga.periode'])
-        ->get();
+            ->with(['warga', 'warga.periode'])
+            ->get();
 
         if ($dataHasil->isEmpty()) {
             return redirect()->back()->with([

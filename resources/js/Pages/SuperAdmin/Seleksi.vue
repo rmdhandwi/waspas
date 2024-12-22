@@ -9,6 +9,7 @@ import {
     InputNumber,
     Button,
     FloatLabel,
+    Tag,
 } from "primevue";
 import { useForm } from "@inertiajs/vue3";
 
@@ -177,28 +178,23 @@ const formatName = (columnName) => {
                                 </template>
                             </Column>
                             <Column field="qi" header="Nilai Qi" />
-                            <Column field="penghasilan" header="Penghasilan">
-                                <template #body="{ data }">
-                                    {{ formatName(data.penghasilan) }}
-                                </template>
-                            </Column>
-                            <Column
-                                field="jumlah_penghuni"
-                                header="Jumlah Anggota keluarga"
-                            >
-                                <template #body="{ data }">
-                                    {{ formatName(data.jumlah_penghuni) }}
-                                </template>
-                            </Column>
-                            <Column
-                                field="status_kepemilikan_rumah"
-                                header="Kepemilikan Rumah"
-                            >
-                                <template #body="{ data }">
-                                    {{ formatName(data.status_kepemilikan_rumah) }}
-                                </template>
-                            </Column>
                             <Column field="ranking" header="Ranking" />
+                            <Column field="status" header="Status">
+                                <template #body="{ data }">
+                                    <Tag
+                                        v-if="data.status == 'Layak'"
+                                        severity="success"
+                                        :value="data.status"
+                                        icon="pi pi-check-circle"
+                                    />
+                                    <Tag
+                                        v-else
+                                        icon="pi pi-times"
+                                        severity="danger"
+                                        :value="data.status"
+                                    />
+                                </template>
+                            </Column>
                         </DataTable>
                     </template>
                 </Card>
