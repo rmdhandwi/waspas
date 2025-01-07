@@ -1,0 +1,207 @@
+<script setup>
+import { onMounted, ref, computed } from "vue";
+import { Head, useForm, router } from "@inertiajs/vue3";
+
+// Import PrimeVue components
+import {
+    Button,
+    Card,
+    DataTable,
+    IconField,
+    InputIcon,
+    InputText,
+    Column,
+    FloatLabel,
+    Select,
+    Toast,
+    useToast,
+} from "primevue";
+
+import { FilterMatchMode } from "@primevue/core/api";
+
+const props = defineProps({
+    hasil: Object,
+    flash: Object,
+    periode: Object,
+});
+
+const dt = ref();
+
+let dataHasil = ref([]);
+const toast = useToast(); // Inisialisasi Toast
+
+// Fungsi untuk memeriksa dan menampilkan notifikasi flash
+const ShowToast = () => {
+    if (props.flash && props.flash.notif_status) {
+        toast.add({
+            severity: props.flash.notif_status || "info", // Default 'info'
+            summary:
+                props.flash.notif_status.charAt(0).toUpperCase() +
+                props.flash.notif_status.slice(1),
+            detail: props.flash.notif_message,
+            life: 4000,
+            group: "tc",
+        });
+    }
+};
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
+
+// Inisialisasi data hasil
+onMounted(() => {
+    dataHasil.value = props.hasil.map((p, i) => ({
+        index: i + 1,
+        ...p,
+    }));
+    ShowToast(); // Cek notifikasi saat komponen dimuat
+});
+
+const view = useForm({
+    periode: null,
+});
+
+// Filter data berdasarkan dropdown
+const filteredDataHasil = computed(() => {
+    return dataHasil.value.filter(
+        (item) => item.warga.periode?.id === view.periode
+    );
+});
+
+// Format nama kolom
+const formatName = (columnName) => {
+    return columnName
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+};
+</script>
+
+<template>
+    <Head title="Hasil Seleksi" />
+    <Toast position="top-center" group="tc" />
+
+    <div
+        class="width-full flex flex-col justify-center items-center px-4 sm:px-8"
+    >
+        <!-- Logo -->
+        <img
+            src="logo.png"
+            alt="Logo"
+            class="h-20 w-auto mb-2 mt-2 drop-shadow-md"
+        />
+
+        <Button
+            as="a"
+            :href="route('login')"
+            icon="pi pi-arrow-left"
+            severity="danger"
+            label="Kembali"
+            size="small"
+            variant="text"
+            class="mb-2"
+        />
+
+        <!-- Judul -->
+        <h1
+            class="text-2xl font-bold text-blue-700 text-center mb-4 drop-shadow-xl"
+        >
+            DATA HASIL PENERIMA BANTUAN PERBAIKAN RUMAH
+        </h1>
+
+        <!-- Kartu Konten -->
+        <Card
+            class="shadow-lg border border-gray-200 rounded-lg w-full max-w-7xl"
+        >
+            <template #header>
+                <div
+                    class="flex flex-wrap items-center justify-between p-4 gap-4"
+                >
+                    <!-- Dropdown Periode -->
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <div class="w-[250px]">
+                            <FloatLabel variant="on">
+                                <Select
+                                    fluid
+                                    v-model="view.periode"
+                                    :options="props.periode"
+                                    optionValue="id"
+                                    optionLabel="tahun"
+                                    class="drop-shadow-md"
+                                />
+                                <label>Periode</label>
+                            </FloatLabel>
+                        </div>
+                    </div>
+
+                    <!-- Input Cari -->
+                    <div class="w-full sm:w-auto drop-shadow-md">
+                        <IconField>
+                            <InputIcon>
+                                <i class="pi pi-search me-4 text-gray-500" />
+                            </InputIcon>
+                            <InputText
+                                v-model="filters['global'].value"
+                                placeholder="Cari Data Warga"
+                                class="w-full sm:w-auto"
+                            />
+                        </IconField>
+                    </div>
+                </div>
+            </template>
+
+            <template #content>
+                <DataTable
+                    removableSort
+                    v-model:filters="filters"
+                    ref="dt"
+                    :value="filteredDataHasil"
+                    stripedRows
+                    paginator
+                    scrollable
+                    resizableColumns
+                    columnResizeMode="fit"
+                    size="large"
+                    :rowsPerPageOptions="[5, 10, 20, 50, 100]"
+                    :rows="10"
+                    class="shadow-md rounded-md overflow-hidden"
+                >
+                    <template #empty>
+                        <span
+                            class="flex justify-center items-center text-lg text-gray-500"
+                        >
+                            Tidak ada data
+                        </span>
+                    </template>
+                    <Column sortable field="index" header="No" />
+                    <Column
+                        sortable
+                        field="warga.periode.tahun"
+                        header="Periode"
+                    />
+                    <Column sortable header="Nama Warga" field="warga.nama_kk">
+                        <template #body="{ data }">
+                            {{ formatName(data.warga.nama_kk) }}
+                        </template>
+                    </Column>
+                    <Column sortable header="Hasil Akhir" field="skor_akhir" />
+                    <Column sortable header="Rank" field="peringkat" />
+                </DataTable>
+            </template>
+        </Card>
+    </div>
+</template>
+
+<style scoped>
+/* Tambahkan beberapa gaya untuk mempercantik */
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-family: "Poppins", sans-serif;
+}
+</style>

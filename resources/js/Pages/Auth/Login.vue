@@ -12,6 +12,7 @@ import {
     Dialog,
     FloatLabel,
     Message,
+    IconField
 } from "primevue";
 
 let showDialog = ref(false);
@@ -160,11 +161,13 @@ const submit = () => {
                 <!-- Register Link -->
                 <div class="flex justify-end mt-2">
                     <Button
-                        @click="registerShow"
-                        class="hover:text-blue-600 text-sm transition underline"
+                        as="a"
+                        class="hover:text-blue-600 text-sm transition  flex items-center"
                         unstyled
+                        :href="route('hasilWarga')"
                     >
-                        Daftar Sekarang?
+                    Hasil seleksi
+                    <i class="pi pi-clipboard ms-1"></i>
                     </Button>
                 </div>
 

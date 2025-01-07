@@ -36,11 +36,11 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'flash' => [
-                'notif_status' => fn() => $request->session()->get('notif_status'), //success / error
+                'notif_status'  => fn() => $request->session()->get('notif_status'), //success / error
                 'notif_message' => fn() => $request->session()->get('notif_message'), //isi notifikasi
-                'is_kriteria' => fn() => $request->session()->get('notif_message'),
-                'is_login' => fn() => $request->session()->get('is_login'),
-                'is_logout' => fn() => $request->session()->get('is_logout')
+                'is_kriteria'   => fn() => $request->session()->get('notif_message'),
+                'is_login'      => fn() => $request->session()->get('is_login'),
+                'is_logout'     => fn() => $request->session()->get('is_logout')
             ],
             'ziggy' => fn() => [
                 ...(new Ziggy)->toArray(),
