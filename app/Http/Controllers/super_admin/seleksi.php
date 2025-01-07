@@ -186,8 +186,8 @@ class seleksi extends Controller
             $alt['ranking'] = $index + 1;
 
             // Tentukan status kelayakan
-            if ($alt['qi'] < 0.585) {
-                $alt['status'] = 'Tidak Layak';
+            if ($alt['qi'] < 0.511) {
+                $alt['status'] = 'Kurang Layak';
             } else {
                 $alt['status'] = 'Layak';
             }
@@ -281,6 +281,21 @@ class seleksi extends Controller
 
         // Kembalikan view dengan data hasil dan periode
         return Inertia::render('SuperAdmin/Hasil', [
+            'hasil' => $dataSeleksi,
+            'periode' => $periode
+        ]);
+    }
+
+    public function hasilWarga()
+    {
+        // Ambil data hasil seleksi dengan relasi warga dan periode
+        $dataSeleksi = hasil::with(['warga', 'warga.periode'])->get();
+
+        // Ambil semua data periode untuk dropdown atau referensi lainnya
+        $periode = Periode::all();
+
+        // Kembalikan view dengan data hasil dan periode
+        return Inertia::render('DataWarga/HasilPage', [
             'hasil' => $dataSeleksi,
             'periode' => $periode
         ]);
