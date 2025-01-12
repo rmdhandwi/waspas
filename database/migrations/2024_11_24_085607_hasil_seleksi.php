@@ -20,6 +20,14 @@ return new class extends Migration
             $table->integer('peringkat');
             $table->timestamps();
         });
+
+        Schema::create('perhitungan', function (Blueprint $table) {
+            $table->id()->primary();
+            $table->foreignId('warga_id')->constrained('warga')->onDelete('cascade');
+            $table->float('skor_akhir');
+            $table->integer('peringkat');
+            $table->string('status', 11);
+        });
     }
 
     /**

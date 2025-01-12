@@ -193,6 +193,107 @@ class Warga extends Controller
         }
     }
 
+    // public function upload(Request $request)
+    // {
+    //     // Validasi file yang diunggah
+    //     $request->validate([
+    //         'file' => 'required|mimes:csv,txt'
+    //     ], [
+    //         'file.required' => 'File harus diunggah.',
+    //         'file.mimes' => 'Hanya file CSV yang diperbolehkan.'
+    //     ]);
+
+    //     // Proses unggahan file dan penyimpanan data ke database
+    //     try {
+    //         $file = $request->file('file');
+    //         $csvData = array_map('str_getcsv', file($file));
+
+    //         // Lewati baris pertama jika itu adalah header
+    //         $header = array_shift($csvData);
+
+    //         // Array untuk menyimpan nomor KK yang sudah diproses
+    //         $processedNomorKk = [];
+
+    //         foreach ($csvData as $row) {
+    //             $nomorKk = $row[1];
+    //             $tahunId = $row[0]; // Tahun dari CSV (row[0])
+    //             $status = $row[11]; // Tahun dari CSV (row[11])
+
+    //             // Cek apakah nomor KK, dengan peeriode yang sama dan statusnya tidak 1 (untuk cek duplikasi dalam file)
+    //             if (in_array($nomorKk, $processedNomorKk)) {
+    //                 return redirect()->back()->with([
+    //                     'notif_status' => 'error',
+    //                     'notif_message' => 'Nomor KK ' . $nomorKk . ' duplikat dalam file CSV!'
+    //                 ]);
+    //             }
+
+    //             // Cek apakah nomor KK sudah ada di database
+    //             $existingData = ModelsWarga::where('nomor_kk', $nomorKk)->first();
+
+    //             if ($existingData) {
+    //                 return redirect()->back()->with([
+    //                     'notif_status' => 'error',
+    //                     'notif_message' => 'Nomor KK ' . $nomorKk . ' sudah terdaftar! dengan nama: ' . $existingData->nama_kk
+    //                 ]);
+    //             }
+
+    //             // Cek apakah tahun_id ada di tabel periode
+    //             $periode = periode::where('tahun', $tahunId)->first(); // Pastikan `Period` adalah model untuk tabel periode
+
+    //             if (!$periode) {
+    //                 return redirect()->back()->with([
+    //                     'notif_status' => 'error',
+    //                     'notif_message' => 'Tahun ID ' . $tahunId . ' tidak ditemukan di tabel periode!'
+    //                 ]);
+    //             }
+
+    //             // Gunakan id dari periode yang ditemukan
+    //             $periodeId = $periode->id;
+
+    //             // Pemetaan kolom CSV ke kolom database
+    //             ModelsWarga::create([
+    //                 'tahun_id' => $periodeId, // Gunakan id periode
+    //                 'nomor_kk' => $nomorKk,
+    //                 'nama_kk' => strtolower(str_replace(' ', '_', $row[2])),
+    //                 'provinsi' => strtolower(str_replace(' ', '_', $row[3])),
+    //                 'kabupaten' => strtolower(str_replace(' ', '_', $row[4])),
+    //                 'kampung' => strtolower(str_replace(' ', '_', $row[5])),
+    //                 'rt' => strtolower(str_replace(' ', '_', $row[6])),
+    //                 'rw' => strtolower(str_replace(' ', '_', $row[7])),
+    //                 'asal_suku' => strtolower(str_replace(' ', '_', $row[8])),
+    //                 'pekerjaan' => strtolower(str_replace(' ', '_', $row[9])),
+    //                 'agama' => strtolower(str_replace(' ', '_', $row[10])),
+    //                 'status' => $status,
+    //                 'jenis_kelamin' => strtolower(str_replace(' ', '_', $row[12])),
+    //                 'created_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
+    //                 'updated_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
+    //                 'penghasilan' => strtolower(str_replace(' ', '_', $row[13])),
+    //                 'status_kepemilikan_rumah' => strtolower(str_replace(' ', '_', $row[14])),
+    //                 'struktur_bangunan_rumah' => strtolower(str_replace(' ', '_', $row[15])),
+    //                 'status_kepemilikan_lahan' => strtolower(str_replace(' ', '_', $row[16])),
+    //                 'status_legalitas_lahan' => strtolower(str_replace(' ', '_', $row[17])),
+    //                 'jumlah_penghuni' => strtolower(str_replace(' ', '_', $row[18])),
+    //                 'kepemilikan_sanitasi' => strtolower(str_replace(' ', '_', $row[19])),
+    //                 'tempat_pembuangan_tinja' => strtolower(str_replace(' ', '_', $row[20])),
+    //             ]);
+
+    //             // Tambahkan nomor KK yang telah diproses ke dalam array
+    //             $processedNomorKk[] = $nomorKk;
+    //         }
+
+    //         return redirect()->back()->with([
+    //             'notif_status' => 'success',
+    //             'notif_message' => 'File CSV berhasil diunggah dan data berhasil disimpan!'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return redirect()->back()->with([
+    //             'notif_status' => 'error',
+    //             'notif_message' => 'Terjadi kesalahan saat memproses file: ' . $e->getMessage()
+    //         ]);
+    //     }
+    // }
+
+    
     public function upload(Request $request)
     {
         // Validasi file yang diunggah
@@ -203,7 +304,6 @@ class Warga extends Controller
             'file.mimes' => 'Hanya file CSV yang diperbolehkan.'
         ]);
 
-        // Proses unggahan file dan penyimpanan data ke database
         try {
             $file = $request->file('file');
             $csvData = array_map('str_getcsv', file($file));
@@ -211,34 +311,43 @@ class Warga extends Controller
             // Lewati baris pertama jika itu adalah header
             $header = array_shift($csvData);
 
-            // Array untuk menyimpan nomor KK yang sudah diproses
-            $processedNomorKk = [];
+            // Inisialisasi penghitung
+            $statusOneCountCsv = 0;
+            $conflictCount = 0;
+            $processedData = [];
 
             foreach ($csvData as $row) {
-                $nomorKk = $row[1];
-                $tahunId = $row[0]; // Tahun dari CSV (row[0])
+                $tahunId = $row[0];  // Tahun dari CSV
+                $nomorKk = $row[1]; // Nomor KK
+                $status = $row[11]; // Status dari CSV
 
-                // Cek apakah nomor KK sudah ada dalam array (untuk cek duplikasi dalam file)
-                if (in_array($nomorKk, $processedNomorKk)) {
-                    return redirect()->back()->with([
-                        'notif_status' => 'error',
-                        'notif_message' => 'Nomor KK ' . $nomorKk . ' duplikat dalam file CSV!'
-                    ]);
+                // Hitung data dengan status = 1 dari file CSV
+                if ($status == 1) {
+                    $statusOneCountCsv++;
                 }
 
-                // Cek apakah nomor KK sudah ada di database
-                $existingData = ModelsWarga::where('nomor_kk', $nomorKk)->first();
+                // Kombinasi yang unik: nomor KK, tahun
+                $uniqueKey = $nomorKk . '|' . $tahunId;
 
-                if ($existingData) {
-                    return redirect()->back()->with([
-                        'notif_status' => 'error',
-                        'notif_message' => 'Nomor KK ' . $nomorKk . ' sudah terdaftar! dengan nama: ' . $existingData->nama_kk
-                    ]);
+                // Cek jika data sudah diproses
+                if (in_array($uniqueKey, $processedData)) {
+                    continue;
+                }
+
+                // Cek di database apakah ada nomor KK yang sama tetapi tahun berbeda dan status = 1
+                $conflictData = ModelsWarga::where('nomor_kk', $nomorKk)
+                    ->where('tahun_id', '!=', $tahunId)
+                    ->where('status', 1)
+                    ->exists();
+
+                if ($conflictData) {
+                    $conflictCount++;
+                    $processedData[] = $uniqueKey; // Tandai sebagai diproses
+                    continue; // Lewati proses berikutnya
                 }
 
                 // Cek apakah tahun_id ada di tabel periode
-                $periode = periode::where('tahun', $tahunId)->first(); // Pastikan `Period` adalah model untuk tabel periode
-
+                $periode = periode::where('tahun', $tahunId)->first();
                 if (!$periode) {
                     return redirect()->back()->with([
                         'notif_status' => 'error',
@@ -249,9 +358,9 @@ class Warga extends Controller
                 // Gunakan id dari periode yang ditemukan
                 $periodeId = $periode->id;
 
-                // Pemetaan kolom CSV ke kolom database
+                // Simpan data ke database jika memenuhi semua validasi
                 ModelsWarga::create([
-                    'tahun_id' => $periodeId, // Gunakan id periode
+                    'tahun_id' => $periodeId,
                     'nomor_kk' => $nomorKk,
                     'nama_kk' => strtolower(str_replace(' ', '_', $row[2])),
                     'provinsi' => strtolower(str_replace(' ', '_', $row[3])),
@@ -262,10 +371,10 @@ class Warga extends Controller
                     'asal_suku' => strtolower(str_replace(' ', '_', $row[8])),
                     'pekerjaan' => strtolower(str_replace(' ', '_', $row[9])),
                     'agama' => strtolower(str_replace(' ', '_', $row[10])),
-                    'status' => strtolower(str_replace(' ', '_', $row[11])),
+                    'status' => $status,
                     'jenis_kelamin' => strtolower(str_replace(' ', '_', $row[12])),
-                    'created_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
-                    'updated_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
+                    'created_at' => now(),
+                    'updated_at' => now(),
                     'penghasilan' => strtolower(str_replace(' ', '_', $row[13])),
                     'status_kepemilikan_rumah' => strtolower(str_replace(' ', '_', $row[14])),
                     'struktur_bangunan_rumah' => strtolower(str_replace(' ', '_', $row[15])),
@@ -276,13 +385,13 @@ class Warga extends Controller
                     'tempat_pembuangan_tinja' => strtolower(str_replace(' ', '_', $row[20])),
                 ]);
 
-                // Tambahkan nomor KK yang telah diproses ke dalam array
-                $processedNomorKk[] = $nomorKk;
+                // Tandai kombinasi ini sudah diproses
+                $processedData[] = $uniqueKey;
             }
 
             return redirect()->back()->with([
                 'notif_status' => 'success',
-                'notif_message' => 'File CSV berhasil diunggah dan data berhasil disimpan!'
+                'notif_message' => "File CSV berhasil diunggah.\nJumlah data yang dengan status = 1: {$statusOneCountCsv}.\Sudah Pernah  Menerima: {$conflictCount}."
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with([
@@ -291,4 +400,6 @@ class Warga extends Controller
             ]);
         }
     }
+
+
 }

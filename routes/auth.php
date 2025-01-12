@@ -13,13 +13,29 @@ use App\Http\Controllers\Warga;
 
 Route::middleware('guest')->group(function () {
     Route::post('login', [Authentication::class, 'store'])->name('loginSubmit');
+
     Route::post('register', [user::class, 'register'])->name('registerSubmit');
+
+    Route::get('Hasil Seleksi Warga', [seleksi::class, 'hasilWarga'])->name('hasilWarga');
 });
 
-Route::middleware('auth')->group(function () {
-    //    super_admin
+Route::middleware('auth')->group(function(){
     Route::get('Dashboard', [superAdminController::class, 'Dashboard'])->name('dashboard');
 
+    Route::get('/logout', [Authentication::class, 'destroy'])->name('logout');
+    Route::get('Warga', [Warga::class, 'wargaPage'])->name('wargapage');
+    Route::get('Hasil Seleksi', [seleksi::class, 'hasilpage'])->name('hasil');
+});
+
+Route::middleware(['auth', 'kepala'])->group(function(){
+   
+    Route::post('Seleksi', [seleksi::class, 'hitungWaspas'])->name('seleksi');
+    // Route::post('Tes', [seleksi::class, 'hitungWaspas'])->name('seleksi');
+    Route::post('Hasil', [seleksi::class, 'saveHasilAkhir'])->name('simpanDataHasil');
+});
+
+Route::middleware(['auth','perangkat'])->group(function () {
+    // User
     Route::get('Pengguna', [user::class, 'userpage'])->name('super_admin.pengguna');
     Route::post('Pengguna', [user::class, 'tambahPengguna'])->name('tambahUser');
     Route::put('UpdatePengguna/{id}', [user::class, 'updateUser'])->name('updateUser');
@@ -40,19 +56,11 @@ Route::middleware('auth')->group(function () {
     Route::put('UpdateSub/{id}', [subKriteria::class, 'update_subkriteria'])->name('UpdateSub');
     Route::delete('DeleteSub/{id}', [subKriteria::class, 'hapus_subkriteria'])->name('DeleteSub');
 
-    Route::get('Warga', [Warga::class, 'wargaPage'])->name('wargapage');
     Route::post('AddWarga', [Warga::class, 'store'])->name('AddWarga');
     Route::put('UpdateWarga/{id}', [Warga::class, 'updateDataWarga'])->name('UpdateWarga');
     Route::delete('DeleteWarga/{id}', [Warga::class, 'deleteWarga'])->name('DeleteWarga');
     
     Route::post('UpluadWarga', [Warga::class, 'upload'])->name('uploadCSV');
 
-    Route::post('Seleksi', [seleksi::class, 'hitungWaspas'])->name('seleksi');
-    // Route::post('Tes', [seleksi::class, 'hitungWaspas'])->name('seleksi');
-    Route::post('Hasil', [seleksi::class, 'saveHasilAkhir'])->name('simpanDataHasil');
-    Route::get('Hasil Seleksi', [seleksi::class, 'hasilpage'])->name('hasil');
-
     Route::post('Cetak Hasil', [seleksi::class, 'cetakPage'])->name('cetakPage');
-
-    Route::get('/logout', [Authentication::class, 'destroy'])->name('logout');
 });

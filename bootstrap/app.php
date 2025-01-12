@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\Is_Kepala;
+use App\Http\Middleware\Is_Perangkat;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        $middleware->alias([
+            'kepala' => Is_Kepala::class,
+            'perangkat' => Is_Perangkat::class
         ]);
 
         //
