@@ -365,23 +365,14 @@ class seleksi extends Controller
     public function hasilWarga()
     {
         // Ambil data hasil seleksi dengan relasi warga dan periode
-<<<<<<< HEAD
         $dataSeleksi = perhitungan::with(['warga', 'warga.periode'])->get();
-      
-=======
-        $dataSeleksi = hasil::with(['warga', 'warga.periode'])->get();
 
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
         // Ambil semua data periode untuk dropdown atau referensi lainnya
         $periode = Periode::all();
 
         // Kembalikan view dengan data hasil dan periode
         return Inertia::render('DataWarga/HasilPage', [
-<<<<<<< HEAD
             'perhitungan' => $dataSeleksi,
-=======
-            'hasil' => $dataSeleksi,
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
             'periode' => $periode
         ]);
     }

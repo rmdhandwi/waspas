@@ -14,22 +14,15 @@ import {
     FloatLabel,
     Select,
     Toast,
-<<<<<<< HEAD
     Tag,
-=======
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
     useToast,
 } from "primevue";
 
 import { FilterMatchMode } from "@primevue/core/api";
 
 const props = defineProps({
-<<<<<<< HEAD
     perhitungan: Object,
     total: Number,
-=======
-    hasil: Object,
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
     flash: Object,
     periode: Object,
 });
@@ -60,11 +53,7 @@ const filters = ref({
 
 // Inisialisasi data hasil
 onMounted(() => {
-<<<<<<< HEAD
     dataHasil.value = props.perhitungan.map((p, i) => ({
-=======
-    dataHasil.value = props.hasil.map((p, i) => ({
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
         index: i + 1,
         ...p,
     }));
@@ -75,7 +64,7 @@ const view = useForm({
     periode: null,
 });
 
-<<<<<<< HEAD
+
 // Filter data berdasarkan dropdown dan hitung total warga dengan status = 1
 const filteredDataHasil = computed(() => {
     // Filter data berdasarkan periode yang dipilih
@@ -94,14 +83,8 @@ const filteredDataHasil = computed(() => {
         data: filteredData,
         total: total,
     };
-=======
-// Filter data berdasarkan dropdown
-const filteredDataHasil = computed(() => {
-    return dataHasil.value.filter(
-        (item) => item.warga.periode?.id === view.periode
-    );
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
 });
+
 
 // Format nama kolom
 const formatName = (columnName) => {
@@ -183,15 +166,12 @@ const formatName = (columnName) => {
                         </IconField>
                     </div>
                 </div>
-<<<<<<< HEAD
                 <Tag
                     class="ms-4"
                     icon="pi pi-clipboard"
                     severity="info"
                     :value="'Total Kouta Bantuan : ' + filteredDataHasil.total"
                 />
-=======
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
             </template>
 
             <template #content>
@@ -199,11 +179,7 @@ const formatName = (columnName) => {
                     removableSort
                     v-model:filters="filters"
                     ref="dt"
-<<<<<<< HEAD
                     :value="filteredDataHasil.data"
-=======
-                    :value="filteredDataHasil"
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
                     stripedRows
                     paginator
                     scrollable
@@ -271,8 +247,6 @@ const formatName = (columnName) => {
                             />
                         </template>
                     </Column>
-=======
->>>>>>> dc10fea88a9c5e2d0d33b4c13a67e85adaa908c4
                 </DataTable>
             </template>
         </Card>
