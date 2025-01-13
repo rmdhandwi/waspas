@@ -29,6 +29,22 @@ class seleksi extends Controller
         // Ambil periode yang dipilih
         $periodeId = $request->periode_id;
 
+        $periode = Periode::find($periodeId);
+        if (!$periode) {
+            return back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Periode tidak ditemukan!',
+            ]);
+        }
+
+        if ($periode->hitung == 1
+        ) {
+            return back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Perhitungan sudah dilakukan untuk periode ini!',
+            ]);
+        }
+
         // Ambil data kriteria dan subkriteria
         $kriteria = Kriteria::all(); // Semua kriteria
         $subkriteria = Subkriteria::all(); // Semua subkriteria
@@ -100,6 +116,7 @@ class seleksi extends Controller
             // Simpan data yang telah difilter ke dalam array baru, termasuk ID warga
             $filteredWarga[] = [
                 'id' => $alt->id,
+                'tahun_id' => $alt->id,
                 'alternatif' => $alt->nama_kk, // Nama alternatif (misalnya nama KK)
                 'data' => $filteredData,      // Data yang relevan berdasarkan kriteria
                 'penghasilan' => $alt->penghasilan, // Ambil data penghasilan
@@ -203,75 +220,6 @@ class seleksi extends Controller
         ]);
     }
 
-    // public function saveHasilAkhir(Request $request)
-    // {
-    //     // Ambil data hasil seleksi yang diterima dari frontend
-    //     $results = $request->results;
-    //     $exportCount = (int)$request->export_count; // Ambil jumlah data yang dimasukkan pengguna
-
-    //     // Pastikan data hasil seleksi ada
-    //     if (empty($results)) {
-    //         return redirect()->route('wargapage')->with([
-    //             'notif_status' => 'error',
-    //             'notif_message' => 'Tidak ada data hasil seleksi yang diterima.',
-    //         ]);
-    //     }
-
-    //     // Validasi jumlah data yang akan disimpan
-    //     if ($exportCount <= 0 || $exportCount > count($results)) {
-    //         return redirect()->route('wargapage')->with([
-    //             'notif_status' => 'error',
-    //             'notif_message' => 'Jumlah data yang diminta tidak valid.',
-    //         ]);
-    //     }
-
-    //     // Ambil hanya sejumlah data sesuai exportCount
-    //     $selectedResults = array_slice($results, 0, $exportCount);
-
-    //     // Cek jika ada masalah dalam menyimpan data
-    //     $isSaved = true;
-
-    //     foreach ($selectedResults as $result) {
-    //         // Simpan hasil akhir untuk setiap warga
-    //         $hasil = hasil::create([
-    //             'warga_id' => $result['id'], // ID warga
-    //             'skor_akhir' => $result['qi'], // Nilai Qi
-    //             'peringkat' => $result['ranking'], // Peringkat
-    //             'created_at' => Carbon::now('Asia/Jayapura')
-    //         ]);
-
-    //         // Pastikan data berhasil disimpan
-    //         if (!$hasil) {
-    //             $isSaved = false;
-    //             break;
-    //         }
-
-    //         // Update status warga yang terpilih ke 1 (sudah diproses)
-    //         $updateStatus = Warga::where('id', $result['id'])
-    //             ->update(['status' => 1, 'updated_at' => Carbon::now('Asia/Jayapura')]);
-
-    //         // Cek jika update status gagal
-    //         if (!$updateStatus) {
-    //             $isSaved = false;
-    //             break;
-    //         }
-    //     }
-
-    //     // Kembalikan notifikasi berdasarkan hasil
-    //     if ($isSaved) {
-    //         return redirect()->route('wargapage')->with([
-    //             'notif_status' => 'success',
-    //             'notif_message' => 'Data hasil perhitungan berhasil disimpan dan status warga telah diperbarui.',
-    //         ]);
-    //     } else {
-    //         return redirect()->route('wargapage')->with([
-    //             'notif_status' => 'error',
-    //             'notif_message' => 'Terjadi kesalahan saat menyimpan data atau memperbarui status.',
-    //         ]);
-    //     }
-    // }
-
-
     public function saveHasilAkhir(Request $request)
     {
         // Ambil data hasil seleksi yang diterima dari frontend
@@ -312,6 +260,12 @@ class seleksi extends Controller
 
                 // Update status warga menjadi 1 (sudah diproses)
                 Warga::where('id', $result['id'])->update([
+                    'status' => 1,
+                    'updated_at' => Carbon::now('Asia/Jayapura'),
+                ]);
+
+                // Update status periode menjadi 1 (sudah diproses)
+                periode::where('id', $result['tahun_id'])->update([
                     'status' => 1,
                     'updated_at' => Carbon::now('Asia/Jayapura'),
                 ]);

@@ -145,7 +145,7 @@ const submit = () => {
                             toggleMask
                             class="mt-1"
                         />
-                        <label for="password">Passoword</label>
+                        <label for="password">Password</label>
                     </FloatLabel>
 
                     <Message
