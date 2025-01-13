@@ -34,10 +34,9 @@ class Warga extends Controller
     public function store(Request $request)
     {
         // Validasi data warga
-        // dd($request->all());
         $request->validate(
             [
-                'nomor_kk' => 'required|unique:warga,nomor_kk|numeric',
+                'nomor_kk' => 'required|numeric',
                 'nama_kk' => 'required',
                 'periode_id' => 'required',
                 'provinsi' => 'required',
@@ -49,15 +48,27 @@ class Warga extends Controller
                 'agama' => 'required',
                 'jenis_kelamin' => 'required',
                 'asal_suku' => 'required',
-                'kriteria_values' => 'required|array', // Pastikan kriteria_values ada
-                'kriteria_values.*' => 'required', // Validasi setiap item di dalam kriteria_values
+                'kriteria_values' => 'required|array',
+                'kriteria_values.*' => 'required',
             ],
             [
                 '*.required' => 'Kolom wajib diisi',
                 '*.numeric' => 'Kolom hanya diisi angka',
-                'kriteria_values.*.required' => 'Kolom wajib diisi', // Custom error untuk kriteria_values
+                'kriteria_values.*.required' => 'Kolom wajib diisi',
             ]
         );
+
+        // Pengecekan apakah data dengan nomor_kk dan tahun_id (periode_id) sudah ada
+        $existingWarga = ModelsWarga::where('nomor_kk', $request->nomor_kk)
+            ->where('tahun_id', $request->periode_id)
+            ->exists();
+
+        if ($existingWarga) {
+            return back()->with([
+                'notif_status' => 'error',
+                'notif_message' => 'Data dengan Nomor KK dan Tahun yang sama sudah ada!',
+            ]);
+        }
 
         // Mengubah nama kriteria menjadi huruf kecil dan mengganti spasi dengan garis bawah
         $namaKriteriaFormat = strtolower(str_replace(' ', '_', $request->nama_kk));
@@ -79,7 +90,7 @@ class Warga extends Controller
             'jenis_kelamin' => $request->jenis_kelamin,
             'asal_suku' => $asalsukuFormat,
             'status' => 0,
-            'created_at' => Carbon::now('Asia/Jayapura')
+            'created_at' => Carbon::now('Asia/Jayapura'),
         ];
 
         // Menyimpan data warga (tabel warga)
@@ -103,6 +114,8 @@ class Warga extends Controller
             'notif_message' => 'Data warga berhasil ditambahkan!',
         ]);
     }
+
+
 
     public function updateDataWarga(Request $request, $id)
     {
@@ -293,7 +306,7 @@ class Warga extends Controller
     //     }
     // }
 
-    
+
     public function upload(Request $request)
     {
         // Validasi file yang diunggah
@@ -400,6 +413,4 @@ class Warga extends Controller
             ]);
         }
     }
-
-
 }
