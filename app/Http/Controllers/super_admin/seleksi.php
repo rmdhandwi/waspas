@@ -37,14 +37,6 @@ class seleksi extends Controller
             ]);
         }
 
-        if ($periode->hitung == 1
-        ) {
-            return back()->with([
-                'notif_status' => 'error',
-                'notif_message' => 'Perhitungan sudah dilakukan untuk periode ini!',
-            ]);
-        }
-
         // Ambil data kriteria dan subkriteria
         $kriteria = Kriteria::all(); // Semua kriteria
         $subkriteria = Subkriteria::all(); // Semua subkriteria
@@ -264,11 +256,6 @@ class seleksi extends Controller
                     'updated_at' => Carbon::now('Asia/Jayapura'),
                 ]);
 
-                // Update status periode menjadi 1 (sudah diproses)
-                periode::where('id', $result['tahun_id'])->update([
-                    'status' => 1,
-                    'updated_at' => Carbon::now('Asia/Jayapura'),
-                ]);
             }
 
             // Simpan semua data ke tabel perhitungan
