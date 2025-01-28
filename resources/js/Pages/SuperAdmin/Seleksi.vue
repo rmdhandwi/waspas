@@ -67,6 +67,16 @@ const formatName = (columnName) => {
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
 };
+
+const formatKeterangan = (keterangan) => {
+    if (!keterangan || typeof keterangan !== "string") return ""; // Handle jika input kosong atau bukan string
+
+    return keterangan
+        .split("_") // Pisahkan berdasarkan underscore
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Kapitalisasi huruf pertama, sisanya huruf kecil
+        .join(" "); // Gabungkan kembali dengan spasi
+};
+
 </script>
 
 <template>
@@ -75,9 +85,7 @@ const formatName = (columnName) => {
         <template #pageContent>
             <div class="p-4">
                 <div class="flex items-center justify-between">
-                    <h1 class="text-lg font-bold">Data Seleksi</h1>
-                    <p v-if="periode.length">Periode: {{ periode[0].tahun }}</p>
-                    <p v-else class="text-red-500">Periode tidak ditemukan!</p>
+                    <h1 class="text-2xl font-bold">Data Seleksi</h1>
                 </div>
 
                 <!-- Input untuk jumlah data -->
@@ -172,7 +180,7 @@ const formatName = (columnName) => {
                             :rowsPerPageOptions="[5, 10, 20, 50, 100]"
                             :responsiveLayout="'scroll'"
                         >
-                            <Column header="Alternatif">
+                            <Column field="alternatif" header="Nama Warga">
                                 <template #body="{ data }">
                                     {{ formatName(data.alternatif) }}
                                 </template>
@@ -193,6 +201,11 @@ const formatName = (columnName) => {
                                         severity="danger"
                                         :value="data.status"
                                     />
+                                </template>
+                            </Column>
+                            <Column field="keterangan" header="Keterangan">
+                                <template #body="{ data }">
+                                    {{ formatKeterangan(data.keterangan) }}
                                 </template>
                             </Column>
                         </DataTable>

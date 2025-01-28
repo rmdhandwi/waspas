@@ -17,8 +17,8 @@ class Kriteria extends Model
         'nama_kriteria',
         'bobot',
         'tipe',
-        'created_at',
-        'updated_at'
+        'status',
+        'keterangan',
     ];
 
     public function subkriteria()
@@ -42,12 +42,12 @@ class Kriteria extends Model
 
         // Jika ada data sebelumnya, ambil nomor berikutnya
         if (!$lastKodeKriteria) {
-            return 'C1'; // Mengambil nomor setelah C
+            return 'C01'; // Mengambil nomor setelah C
         }
         $lastNumber = intval(substr($lastKodeKriteria->kode_kriteria, 1));
 
         $newNumber = $lastNumber + 1;
         // Buat kode baru
-        return 'C' . str_pad($newNumber, 1, '0', $newNumber);
+        return 'C' . str_pad($newNumber, 2, '0', $newNumber);
     }
 }

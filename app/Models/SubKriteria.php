@@ -17,8 +17,6 @@ class SubKriteria extends Model
             'kode_sub',
             'nama_subkriteria',
             'nilai',
-            'created_at',
-            'updated_at'
         ];
 
     public function kriteria()

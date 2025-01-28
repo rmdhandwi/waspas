@@ -1,38 +1,73 @@
 <script setup>
-import { onMounted, ref, computed } from "vue";
-import { Head, useForm, router } from "@inertiajs/vue3";
-
-// Import PrimeVue components
+import { ref, computed, watch, onMounted } from "vue";
+import { Head } from "@inertiajs/vue3";
 import {
     Button,
     Card,
     DataTable,
-    IconField,
-    InputIcon,
-    InputText,
     Column,
     FloatLabel,
     Select,
-    Toast,
     Tag,
+    Toast,
     useToast,
+    Tabs,
+    TabList,
+    TabPanels,
+    Tab,
+    TabPanel,
+    IconField,
+    InputIcon,
+    InputText,
 } from "primevue";
-
 import { FilterMatchMode } from "@primevue/core/api";
 
 const props = defineProps({
-    perhitungan: Object,
-    total: Number,
+    perhitungan: Array,
+    periode: Array,
+    groupedByHitung: Object,
     flash: Object,
-    periode: Object,
 });
 
-const dt = ref();
+const selectedPeriode = ref(null);
+const activeTab = ref(null);
+const toast = useToast();
 
-let dataHasil = ref([]);
-const toast = useToast(); // Inisialisasi Toast
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
 
-// Fungsi untuk memeriksa dan menampilkan notifikasi flash
+const quotaCountByHitung = computed(() => {
+    const quotaCounts = {};
+    for (const [hitung, group] of Object.entries(filteredDataByPeriode.value)) {
+        quotaCounts[hitung] = group.filter(
+            (item) => item.terima === "Telah Menerima"
+        ).length;
+    }
+    return quotaCounts;
+});
+
+// Filter data berdasarkan periode
+const filteredDataByPeriode = computed(() => {
+    if (!selectedPeriode.value) return {};
+    const filtered = {};
+    for (const [key, group] of Object.entries(props.groupedByHitung)) {
+        filtered[key] = group.filter(
+            (item) => item.warga.periode?.id === selectedPeriode.value
+        );
+    }
+    return filtered;
+});
+
+watch(selectedPeriode, (newValue) => {
+    if (newValue) {
+        const firstTab = Object.keys(filteredDataByPeriode.value)[0] || null;
+        activeTab.value = firstTab; // Set tab awal ke tab pertama
+    } else {
+        activeTab.value = null; // Reset tab jika periode tidak dipilih
+    }
+});
+
 const ShowToast = () => {
     if (props.flash && props.flash.notif_status) {
         toast.add({
@@ -47,46 +82,11 @@ const ShowToast = () => {
     }
 };
 
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-
-// Inisialisasi data hasil
 onMounted(() => {
-    dataHasil.value = props.perhitungan.map((p, i) => ({
-        index: i + 1,
-        ...p,
-    }));
-    ShowToast(); // Cek notifikasi saat komponen dimuat
+    ShowToast();
 });
 
-const view = useForm({
-    periode: null,
-});
-
-
-// Filter data berdasarkan dropdown dan hitung total warga dengan status = 1
-const filteredDataHasil = computed(() => {
-    // Filter data berdasarkan periode yang dipilih
-    const filteredData = dataHasil.value.filter(
-        (item) => item.warga.periode?.id === view.periode
-    );
-
-    // Hitung total warga dengan status = 1
-    const total = filteredData.reduce(
-        (count, item) => (item.warga.status === 1 ? count + 1 : count),
-        0
-    );
-
-    // Return data yang difilter dan total warga dengan status = 1
-    return {
-        data: filteredData,
-        total: total,
-    };
-});
-
-
-// Format nama kolom
+// Format nama kolom untuk keterbacaan yang lebih baik
 const formatName = (columnName) => {
     return columnName
         .split("_")
@@ -97,7 +97,7 @@ const formatName = (columnName) => {
 
 <template>
     <Head title="Hasil Seleksi" />
-    <Toast position="top-center" group="tc" />
+    <Toast position="top-center" />
 
     <div
         class="width-full flex flex-col justify-center items-center px-4 sm:px-8"
@@ -126,142 +126,174 @@ const formatName = (columnName) => {
         >
             DATA HASIL PENERIMA BANTUAN PERBAIKAN RUMAH
         </h1>
+    </div>
 
-        <!-- Kartu Konten -->
-        <Card
-            class="shadow-lg border border-gray-200 rounded-lg w-full max-w-7xl"
-        >
-            <template #header>
-                <div
-                    class="flex flex-wrap items-center justify-between p-4 gap-4"
-                >
-                    <!-- Dropdown Periode -->
-                    <div class="flex items-center gap-4 w-full sm:w-auto">
-                        <div class="w-[250px]">
-                            <FloatLabel variant="on">
-                                <Select
-                                    fluid
-                                    v-model="view.periode"
-                                    :options="props.periode"
-                                    optionValue="id"
-                                    optionLabel="tahun"
-                                    class="drop-shadow-md"
-                                />
-                                <label>Periode</label>
-                            </FloatLabel>
-                        </div>
-                    </div>
-
-                    <!-- Input Cari -->
-                    <div class="w-full sm:w-auto drop-shadow-md">
-                        <IconField>
-                            <InputIcon>
-                                <i class="pi pi-search me-4 text-gray-500" />
-                            </InputIcon>
-                            <InputText
-                                v-model="filters['global'].value"
-                                placeholder="Cari Data Warga"
-                                class="w-full sm:w-auto"
+    <div class="p-6 space-y-4">
+        <!-- Dropdown Periode -->
+        <Card class="shadow-md">
+            <template #content>
+                <div class="flex items-center justify-between">
+                    <div class="w-full sm:w-auto drop-shadow-md flex gap-2">
+                        <FloatLabel>
+                            <Select
+                                v-model="selectedPeriode"
+                                :options="props.periode"
+                                optionValue="id"
+                                optionLabel="tahun"
+                                class="w-[300px]"
                             />
-                        </IconField>
+                            <label>Pilih Periode</label>
+                        </FloatLabel>
+                        <Button
+                            icon="pi pi-refresh"
+                            label="Reset"
+                            class="p-button-outlined"
+                            @click="selectedPeriode = null"
+                        />
                     </div>
                 </div>
-                <Tag
-                    class="ms-4"
-                    icon="pi pi-clipboard"
-                    severity="info"
-                    :value="'Total Kouta Bantuan : ' + filteredDataHasil.total"
-                />
             </template>
+        </Card>
 
+        <!-- Menampilkan Pesan Jika Tidak Ada Data -->
+        <div v-if="!selectedPeriode || Object.keys(filteredDataByPeriode).length === 0" class="text-center text-red-600 font-semibold">
+            Belum ada data untuk periode yang dipilih.
+        </div>
+
+        <!-- Tabs untuk Menampilkan Data Berdasarkan Hitung -->
+        <Card v-if="selectedPeriode && Object.keys(filteredDataByPeriode).length > 0" class="mt-4">
             <template #content>
-                <DataTable
-                    removableSort
-                    v-model:filters="filters"
-                    ref="dt"
-                    :value="filteredDataHasil.data"
-                    stripedRows
-                    paginator
-                    scrollable
-                    resizableColumns
-                    columnResizeMode="fit"
-                    size="large"
-                    :rowsPerPageOptions="[5, 10, 20, 50, 100]"
-                    :rows="10"
-                    class="shadow-md rounded-md overflow-hidden"
-                >
-                    <template #empty>
-                        <span
-                            class="flex justify-center items-center text-lg text-gray-500"
+                <Tabs v-model="activeTab" class="w-full">
+                    <!-- Daftar Tab -->
+                    <TabList class="flex border-b mb-4">
+                        <template
+                            v-for="(group, hitung) in filteredDataByPeriode"
+                            :key="hitung"
                         >
-                            Tidak ada data
-                        </span>
-                    </template>
-                    <Column sortable field="index" header="No" />
-                    <Column
-                        sortable
-                        field="warga.periode.tahun"
-                        header="Periode"
-                    />
-                    <Column sortable header="Nama Warga" field="warga.nama_kk">
-                        <template #body="{ data }">
-                            {{ formatName(data.warga.nama_kk) }}
+                            <Tab :value="hitung"
+                                >Perhitungan ke : {{ hitung }}</Tab
+                            >
                         </template>
-                    </Column>
-                    <Column sortable header="Hasil Akhir" field="skor_akhir" />
-                    <Column sortable header="Rank" field="peringkat" />
-<<<<<<< HEAD
-                    <Column sortable header="Status Layak" field="status">
-                        <template #body="{ data }">
-                            <Tag
-                                v-if="data.status == 'Layak'"
-                                severity="success"
-                                :value="data.status"
-                                icon="pi pi-check-circle"
-                            />
-                            <Tag
-                                v-else
-                                icon="pi pi-times"
-                                severity="danger"
-                                :value="data.status"
-                            />
+                    </TabList>
+
+                    <!-- Konten Tab -->
+                    <TabPanels>
+                        <template
+                            v-for="(group, hitung) in filteredDataByPeriode"
+                            :key="hitung"
+                        >
+                            <TabPanel :value="hitung">
+                                <DataTable
+                                    removableSort
+                                    v-model:filters="filters"
+                                    ref="dt"
+                                    resizableColumns
+                                    columnResizeMode="fit"
+                                    size="large"
+                                    :rowsPerPageOptions="[5, 10, 20, 50, 100]"
+                                    class="shadow-md rounded-md overflow-hidden"
+                                    :value="group"
+                                    paginator
+                                    :rows="10"
+                                    stripedRows
+                                    scrollable
+                                >
+                                    <template #header>
+                                        <div
+                                            class="flex justify-between items-center"
+                                        >
+                                            <!-- Tag untuk menampilkan jumlah kuota -->
+                                            <Tag
+                                                icon="pi pi-megaphone"
+                                                :value="
+                                                    'Jumlah Kuota: ' +
+                                                    (quotaCountByHitung[
+                                                        hitung
+                                                    ] || 0)
+                                                "
+                                            />
+
+                                            <!-- Input Cari -->
+                                            <div
+                                                class="w-full sm:w-auto drop-shadow-md"
+                                            >
+                                                <IconField>
+                                                    <InputIcon>
+                                                        <i
+                                                            class="pi pi-search me-4 text-gray-500"
+                                                        />
+                                                    </InputIcon>
+                                                    <InputText
+                                                        v-model="
+                                                            filters['global']
+                                                                .value
+                                                        "
+                                                        placeholder="Cari Data Warga"
+                                                        class="w-full sm:w-auto"
+                                                    />
+                                                </IconField>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template #empty>
+                                        <div class="text-center text-gray-500">
+                                            Tidak ada data
+                                        </div>
+                                    </template>
+                                    <Column
+                                        field="warga.nama_kk"
+                                        header="Nama Warga"
+                                    >
+                                        <template #body="{ data }">
+                                            {{ formatName(data.warga.nama_kk) }}
+                                        </template>
+                                    </Column>
+                                    <Column
+                                        field="warga.periode.tahun"
+                                        header="Periode"
+                                    />
+                                    <!-- <Column
+                                        field="skor_akhir"
+                                        header="Hasil Akhir"
+                                        sortable
+                                    /> -->
+                                    <Column
+                                        header="Status Menerima"
+                                        field="terima"
+                                    >
+                                        <template #body="{ data }">
+                                            <Tag
+                                                v-if="
+                                                    data.terima ===
+                                                    'Telah Menerima'
+                                                "
+                                                icon="pi pi-check-circle"
+                                                value="Telah Menerima"
+                                                severity="success"
+                                            />
+                                            <Tag
+                                                v-else
+                                                icon="pi pi-times"
+                                                value="Belum Menerima"
+                                                severity="danger"
+                                            />
+                                        </template>
+                                    </Column>
+                                </DataTable>
+                            </TabPanel>
                         </template>
-                    </Column>
-                    <Column
-                        sortable
-                        header="Status Menerima"
-                        field="warga.status"
-                    >
-                        <template #body="{ data }">
-                            <Tag
-                                v-if="data.warga.status == 1"
-                                severity="success"
-                                value="Telah Menerima Bantuan"
-                                icon="pi pi-check-circle"
-                            />
-                            <Tag
-                                v-else
-                                icon="pi pi-times"
-                                severity="danger"
-                                value="Belum Menerima Bantuan"
-                            />
-                        </template>
-                    </Column>
-                </DataTable>
+                    </TabPanels>
+                </Tabs>
             </template>
         </Card>
     </div>
 </template>
 
 <style scoped>
-/* Tambahkan beberapa gaya untuk mempercantik */
 .card {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-    font-family: "Poppins", sans-serif;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

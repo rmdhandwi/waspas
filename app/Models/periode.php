@@ -13,8 +13,6 @@ class periode extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'tahun',
-        'created_at',
-        'updated_at'
     ];
 
     public function warga()

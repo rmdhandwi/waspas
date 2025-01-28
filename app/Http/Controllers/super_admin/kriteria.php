@@ -18,6 +18,8 @@ class kriteria extends Controller
     public function kriteria_page()
     {
         $dataKriteria = ModelsKriteria::all();
+        $dataKriteriaAktif = ModelsKriteria::where('status', 'Aktif')->get();
+        $dataKriteriaTidakAktif = ModelsKriteria::where('status', 'Tidak')->get();
         $dataSubKriteria = SubKriteria::orderBy('kode_sub', 'ASC')
             ->with(['kriteria' => function ($query) {
                 $query->select('id', 'nama_kriteria', 'kode_kriteria');
@@ -25,32 +27,52 @@ class kriteria extends Controller
 
         return Inertia::render('SuperAdmin/Kriteria/Kriteria', [
             'dataKriteria' => $dataKriteria,
-            'dataSubKriteria' => $dataSubKriteria
+            'dataSubKriteria' => $dataSubKriteria,
+            'Aktif' => $dataKriteriaAktif,
+            'Taktif' => $dataKriteriaTidakAktif
         ]);
     }
 
     public function tambah_kriteria(Request $request)
     {
-        // Validasi input dari request
+        // Validasi awal untuk status
         $request->validate([
+            'status' => 'required|in:Aktif,Tidak',
             'nama' => 'required|string|max:255',
-            'nilai_bobot' => 'required|numeric|min:0|max:100',
-            'tipe' => 'required',
         ], [
             '*.required' => 'Kolom harus diisi',
-            '*.numeric' => 'Hanya angka yang diperbolehkan'
+            'status.in' => 'Hanya boleh terisi Aktif atau Tidak'
         ]);
 
-        // Menghitung total bobot saat ini dari kriteria yang sudah ada
-        $totalBobotSaatIni = ModelsKriteria::sum('bobot') / 100;
-        $bobotInput = $request->nilai_bobot / 100;
-        $sisaBobot = 1 - $totalBobotSaatIni;
+        // Tambahkan aturan validasi lain jika status adalah "Aktif"
+        if ($request->status === 'Aktif') {
+            $request->validate([
+                'nilai_bobot' => 'required|numeric|min:0|max:100',
+                'tipe' => 'required|in:Benefit,Cost',
+                'keterangan' => 'required|in:Penting,Tidak',
+            ], [
+                'nilai_bobot.required' => 'Bobot harus diisi untuk kriteria aktif',
+                'nilai_bobot.numeric' => 'Bobot harus berupa angka',
+                'tipe.required' => 'Tipe harus diisi untuk kriteria aktif',
+                'tipe.in' => 'Hanya boleh terisi Benefit atau Cost',
+                'keterangan.in' => 'Hanya boleh terisi Penting atau Tidak',
+            ]);
 
-        // Mengecek apakah menambahkan bobot ini akan melebihi 100%
-        if ($bobotInput > $sisaBobot) {
-            return back()->withErrors([
-                'nilai_bobot' => 'Total bobot akan melebihi 100%. Sisa bobot yang dapat diinput adalah: ' . ($sisaBobot * 100) . '%'
-            ])->withInput();
+            // Menghitung total bobot saat ini
+            $totalBobotSaatIni = ModelsKriteria::where('status', 'Aktif')->sum('bobot') / 100;
+            $newWeight = $request->nilai_bobot / 100; // Convert to a fraction
+            $newTotalWeight = $totalBobotSaatIni + $newWeight;
+
+
+            // Jika total bobot melebihi 1, kembalikan dengan pesan error
+            if ($newTotalWeight > 1) {
+                $remainingWeight = (1 - $totalBobotSaatIni) * 100;
+
+                // Calculate remaining weight
+                return back()->withErrors([
+                    'nilai_bobot' => 'Total bobot akan melebihi 100%. Sisa bobot yang dapat diinput adalah: ' . $remainingWeight . '%'
+                ])->withInput();
+            }
         }
 
         // Mengubah nama kriteria menjadi huruf kecil dan mengganti spasi dengan garis bawah
@@ -59,9 +81,10 @@ class kriteria extends Controller
         // Menyimpan data kriteria baru ke dalam database
         $insert = ModelsKriteria::create([
             'nama_kriteria' => $namaKriteriaFormat,
-            'bobot' => $request->nilai_bobot,
-            'tipe' => ucfirst($request->tipe),
-            'created_at' => Carbon::now('Asia/Jayapura')
+            'bobot' => $request->status === 'Aktif' ? $request->nilai_bobot : null, // Set bobot ke null jika status Tidak
+            'tipe' => $request->status === 'Aktif' ? $request->tipe : null,        // Set tipe ke null jika status Tidak
+            'status' => $request->status,
+            'keterangan' => $request->status === 'Aktif' ? $request->keterangan : "Tidak"
         ]);
 
         // Jika penyimpanan berhasil, tambahkan kolom ke tabel 'warga'
@@ -77,19 +100,16 @@ class kriteria extends Controller
 
     private function addColumnToWarga($namaKriteria)
     {
-        // ubah namakriteria
+        // ubah nama kriteria
         $newColumnName = strtolower(str_replace(' ', '_', $namaKriteria));
 
-        // cek kolom tabel wwarga dan tambahkan kolom berdasarkan namakriteria
+        // cek kolom tabel 'warga' dan tambahkan kolom berdasarkan nama kriteria
         if (!Schema::hasColumn('warga', $newColumnName)) {
             Schema::table('warga', function (Blueprint $table) use ($newColumnName) {
-                $table->string($newColumnName, 100)->nullable();
+                $table->text($newColumnName)->nullable();
             });
         }
     }
-
-
-
 
     public function view_kriteria(Request $req)
     {
@@ -115,18 +135,57 @@ class kriteria extends Controller
 
     public function update_kriteria(Request $req)
     {
-        // Validasi input
+        // Validasi awal untuk status dan nama
         $req->validate(
             [
-                'nama' => 'required',
-                'nilai_bobot' => 'required|numeric|min:0|max:100',
-                'tipe' => 'required',
+                'nama' => 'required|string|max:255',
+                'status' => 'required|in:Aktif,Tidak',
             ],
             [
-                '*.required' => 'Kolom Wajib Diisi',
-                '*.numeric' => 'Kolom Wajib Berupa Angka',
+                '*.required' => 'Kolom wajib diisi',
+                'status.in' => 'Hanya boleh terisi Aktif atau Tidak',
             ]
         );
+
+        // Validasi tambahan jika status adalah "Aktif"
+        if ($req->status === 'Aktif') {
+            $req->validate(
+                [
+                    'nilai_bobot' => 'required|numeric|min:0|max:100',
+                    'tipe' => 'required|in:Benefit,Cost',
+                    'keterangan' => 'required|in:Penting,Tidak',
+                ],
+                [
+                    'nilai_bobot.required' => 'Bobot harus diisi untuk kriteria aktif',
+                    'nilai_bobot.numeric' => 'Bobot harus berupa angka',
+                    'nilai_bobot.min' => 'Bobot tidak boleh kurang dari 0%',
+                    'nilai_bobot.max' => 'Bobot tidak boleh lebih dari 100%',
+                    'tipe.required' => 'Tipe harus diisi untuk kriteria aktif',
+                    'tipe.in' => 'Hanya boleh terisi Benefit atau Cost',
+                    'keterangan.in' => 'Hanya boleh terisi Penting atau Tidak',
+                ]
+            );
+
+            // Hitung total bobot kecuali kriteria yang sedang diedit
+            $currentTotalWeight = ModelsKriteria::where('status', 'Aktif')
+                ->where('id', '!=', $req->id)
+                ->sum('bobot') / 100;
+
+            // Tambahkan bobot baru ke total
+            $newWeight = $req->nilai_bobot / 100; // Convert to a fraction
+            $newTotalWeight = $currentTotalWeight + $newWeight;
+
+
+            // Jika total bobot melebihi 1, kembalikan dengan pesan error
+            if ($newTotalWeight > 1) {
+                $remainingWeight = (1 - $currentTotalWeight) * 100;
+
+                // Calculate remaining weight
+                return back()->withErrors([
+                    'nilai_bobot' => 'Total bobot akan melebihi 100%. Sisa bobot yang dapat diinput adalah: ' . $remainingWeight . '%'
+                ])->withInput();
+            }
+        }
 
         // Ambil data lama dari database berdasarkan id
         $existingData = ModelsKriteria::find($req->id);
@@ -139,27 +198,16 @@ class kriteria extends Controller
             ]);
         }
 
-        // Hitung total bobot kecuali kriteria yang sedang diedit
-        $currentTotalWeight = ModelsKriteria::where('id', '!=', $req->id)->sum('bobot') / 100;
-
-        // Tambahkan bobot baru ke total
-        $newTotalWeight = $currentTotalWeight + ($req->nilai_bobot / 100);
-
-        // Jika total bobot melebihi 1, kembalikan dengan pesan error
-        if ($newTotalWeight > 1) {
-            return back()->withErrors([
-                'nilai_bobot' => 'Total bobot akan melebihi 100%. Bobot saat ini (tanpa data yang sedang diedit) adalah: ' . ($currentTotalWeight * 100) . '%. Sisa bobot yang dapat diinput adalah: ' . ((1 - $currentTotalWeight) * 100) . '%'
-            ])->withInput();
-        }
-
         // Cek apakah ada perubahan data
         $isChanged = (
             $existingData->nama_kriteria !== $req->nama ||
-            $existingData->bobot != $req->nilai_bobot ||
-            strtolower($existingData->tipe) !== strtolower($req->tipe)
+            $existingData->bobot != ($req->status === 'Aktif' ? $req->nilai_bobot : null) ||
+            $existingData->tipe != ($req->status === 'Aktif' ? $req->tipe : null) ||
+            $existingData->status !== $req->status ||
+            $existingData->keterangan !== ($req->status === 'Aktif' ? $req->keterangan : "Tidak")
         );
 
-        // Jika tidak ada perubahan, kembalikan dengan pesan sukses tanpa update
+        // Jika tidak ada perubahan, kembalikan dengan pesan info
         if (!$isChanged) {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'info',
@@ -183,16 +231,20 @@ class kriteria extends Controller
         // Mengubah nama kriteria menjadi huruf kecil dan mengganti spasi dengan garis bawah
         $namaKriteriaFormat = strtolower(str_replace(' ', '_', $req->nama));
 
-        // Lanjutkan update data kriteria
+        // dd($req->all());
+        // Persiapkan data untuk update
         $updateData = [
             'nama_kriteria' => $namaKriteriaFormat,
-            'bobot' => $req->nilai_bobot,
-            'tipe' => ucfirst($req->tipe),
+            'bobot' => $req->status === 'Aktif' ? $req->nilai_bobot : null,
+            'tipe' => $req->status === 'Aktif' ? $req->tipe : null,
+            'status' => $req->status,
+            'keterangan' => $req->status === 'Aktif' ? $req->keterangan : "Tidak",
         ];
 
-        // Proses update data
+        // Lakukan update data
         $update = $existingData->update($updateData);
 
+        // Berikan notifikasi berdasarkan hasil update
         if ($update) {
             return redirect()->route('super_admin.kriteria')->with([
                 'notif_status' => 'success',
@@ -205,7 +257,6 @@ class kriteria extends Controller
             ]);
         }
     }
-
 
     public function hapus_kriteria(Request $req)
     {

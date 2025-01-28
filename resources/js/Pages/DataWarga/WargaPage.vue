@@ -20,6 +20,11 @@ import {
     Card,
     Tag,
     FileUpload,
+    Stepper,
+    StepItem,
+    Step,
+    StepPanel,
+    RadioButton,
 } from "primevue";
 import { FilterMatchMode } from "@primevue/core/api";
 
@@ -122,7 +127,6 @@ const formWarga = useForm({
     periode_id: null,
     rt: null,
     rw: null,
-    pekerjaan: null,
     agama: null,
     jenis_kelamin: null,
     asal_suku: null,
@@ -162,6 +166,14 @@ const filteredWargadata = computed(() => {
             index: index + 1, // Reset index
         }));
 });
+
+// Format nama kolom untuk keterbacaan yang lebih baik
+const formatName = (columnName) => {
+    return columnName
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+};
 
 // Data kolom tabel
 const tableColumns = computed(() => {
@@ -239,14 +251,6 @@ const initializeData = () => {
               status: warga.status === 1 ? "Telah Menerima" : "Belum Menerima",
           }))
         : []; // Jika pageProps.warga bukan array, set Wargadata ke array kosong
-};
-
-// Format nama kolom untuk keterbacaan yang lebih baik
-const formatName = (columnName) => {
-    return columnName
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
 };
 
 // Filter subkriteria berdasarkan ID kriteria
@@ -380,6 +384,7 @@ const HitungWaspas = () => {
         },
     });
 };
+
 // const HitungWaspas = () => {
 //     formWarga.post(route("seleksi"), {
 //         onSuccess: () => {
@@ -447,7 +452,7 @@ const exportCSV = () => {
                 <!-- Header -->
                 <div class="flex justify-between items-center">
                     <h1 class="text-xl font-semibold">Data Warga</h1>
-                    <div v-if="pageProps.auth.user.role == 'perangkat'">
+                    <div v-if="pageProps.auth.user.role === 'perangkat'">
                         <Button
                             label="Tambah Data"
                             icon="pi pi-plus"
@@ -457,12 +462,13 @@ const exportCSV = () => {
                     </div>
                 </div>
 
-                <!-- Dialog: Tambah Data -->
                 <Dialog
-                    :header="formType === 'add' ? 'Tambah data' : 'Edit data'"
-                    :visible="showForm"
+                    :header="
+                        formType === 'add' ? 'Tambah Data Warga' : 'Edit Data'
+                    "
+                    v-model:visible="showForm"
                     modal
-                    :style="{ width: '70%' }"
+                    :style="{ width: '90%' }"
                     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
                 >
                     <form
@@ -470,327 +476,515 @@ const exportCSV = () => {
                             formType === 'add' ? tambahData() : updateData()
                         "
                     >
-                        <div
-                            class="grid gap-4 mt-2 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-                        >
-                            <!-- Periode -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <Select
-                                        fluid
-                                        v-model="formWarga.periode_id"
-                                        :options="pageProps.periode"
-                                        optionValue="id"
-                                        optionLabel="tahun"
-                                        :invalid="!!formWarga.errors.periode_id"
-                                    />
-                                    <label>Periode</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.periode_id"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.periode_id }}
-                                </Message>
-                            </div>
+                        <Stepper value="1">
+                            <StepItem value="1">
+                                <Step>Data Umum</Step>
+                                <StepPanel v-slot="{ activateCallback }">
+                                    <div class="flex flex-col">
+                                        <div
+                                            class="p-4 border-2 border-dashed border-surface-200 rounded bg-surface-50 grid gap-4 mt-2 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 font-medium"
+                                        >
+                                            <!-- Periode -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <Select
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.periode_id
+                                                        "
+                                                        :options="
+                                                            pageProps.periode
+                                                        "
+                                                        optionValue="id"
+                                                        optionLabel="tahun"
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .periode_id
+                                                        "
+                                                    />
+                                                    <label>Periode</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors
+                                                            .periode_id
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors
+                                                            .periode_id
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Nomor KK -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        v-keyfilter.num
-                                        fluid
-                                        v-model="formWarga.nomor_kk"
-                                        :invalid="!!formWarga.errors.nomor_kk"
-                                    />
-                                    <label>Nomor KK</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.nomor_kk"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.nomor_kk }}
-                                </Message>
-                            </div>
+                                            <!-- Nomor KK -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        v-keyfilter.num
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.nomor_kk
+                                                        "
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .nomor_kk
+                                                        "
+                                                    />
+                                                    <label>Nomor KK</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors
+                                                            .nomor_kk
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors
+                                                            .nomor_kk
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Nama KK -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        fluid
-                                        v-model="formWarga.nama_kk"
-                                        :invalid="!!formWarga.errors.nama_kk"
-                                    />
-                                    <label>Nama Kepala Keluarga</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.nama_kk"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.nama_kk }}
-                                </Message>
-                            </div>
+                                            <!-- Nama KK -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.nama_kk
+                                                        "
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .nama_kk
+                                                        "
+                                                    />
+                                                    <label
+                                                        >Nama Kepala
+                                                        Keluarga</label
+                                                    >
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors.nama_kk
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors.nama_kk
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Provinsi -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        fluid
-                                        v-model="formWarga.provinsi"
-                                        :invalid="!!formWarga.errors.provinsi"
-                                        disabled
-                                    />
-                                    <label>Provinsi</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.provinsi"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.provinsi }}
-                                </Message>
-                            </div>
+                                            <!-- Provinsi -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.provinsi
+                                                        "
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .provinsi
+                                                        "
+                                                        disabled
+                                                    />
+                                                    <label>Provinsi</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors
+                                                            .provinsi
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors
+                                                            .provinsi
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Kabupaten -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        fluid
-                                        v-model="formWarga.kabupaten"
-                                        :invalid="!!formWarga.errors.kabupaten"
-                                        disabled
-                                    />
-                                    <label>Kabupaten</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.kabupaten"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.kabupaten }}
-                                </Message>
-                            </div>
+                                            <!-- Kabupaten -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.kabupaten
+                                                        "
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .kabupaten
+                                                        "
+                                                        disabled
+                                                    />
+                                                    <label>Kabupaten</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors
+                                                            .kabupaten
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors
+                                                            .kabupaten
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Kampung -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        fluid
-                                        v-model="formWarga.kampung"
-                                        :invalid="!!formWarga.errors.kampung"
-                                        disabled
-                                    />
-                                    <label>Kampung</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.kampung"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.kampung }}
-                                </Message>
-                            </div>
+                                            <!-- Kampung -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.kampung
+                                                        "
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .kampung
+                                                        "
+                                                        disabled
+                                                    />
+                                                    <label>Kampung</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors.kampung
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors.kampung
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- RT -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        v-keyfilter.num
-                                        fluid
-                                        v-model="formWarga.rt"
-                                        :invalid="!!formWarga.errors.rt"
-                                    />
-                                    <label>RT</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.rt"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.rt }}
-                                </Message>
-                            </div>
+                                            <!-- RT -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        v-keyfilter.num
+                                                        fluid
+                                                        v-model="formWarga.rt"
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .rt
+                                                        "
+                                                    />
+                                                    <label>RT</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="formWarga.errors.rt"
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{ formWarga.errors.rt }}
+                                                </Message>
+                                            </div>
 
-                            <!-- RW -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        v-keyfilter.num
-                                        fluid
-                                        v-model="formWarga.rw"
-                                        :invalid="!!formWarga.errors.rw"
-                                    />
-                                    <label>RW</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.rw"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.rw }}
-                                </Message>
-                            </div>
+                                            <!-- RW -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        v-keyfilter.num
+                                                        fluid
+                                                        v-model="formWarga.rw"
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .rw
+                                                        "
+                                                    />
+                                                    <label>RW</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="formWarga.errors.rw"
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{ formWarga.errors.rw }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Asal Suku -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        fluid
-                                        v-model="formWarga.asal_suku"
-                                        :invalid="!!formWarga.errors.asal_suku"
-                                    />
-                                    <label>Asal Suku</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.asal_suku"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.asal_suku }}
-                                </Message>
-                            </div>
+                                            <!-- Asal Suku -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <InputText
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.asal_suku
+                                                        "
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .asal_suku
+                                                        "
+                                                    />
+                                                    <label>Asal Suku</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors
+                                                            .asal_suku
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors
+                                                            .asal_suku
+                                                    }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Pekerjaan -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <InputText
-                                        fluid
-                                        v-model="formWarga.pekerjaan"
-                                        :invalid="!!formWarga.errors.pekerjaan"
-                                    />
-                                    <label>Pekerjaan</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.pekerjaan"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.pekerjaan }}
-                                </Message>
-                            </div>
+                                            <!-- Agama -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <Select
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.agama
+                                                        "
+                                                        :options="optionsAgama"
+                                                        optionValue="value"
+                                                        optionLabel="label"
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .agama
+                                                        "
+                                                    />
+                                                    <label>Agama</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors.agama
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{ formWarga.errors.agama }}
+                                                </Message>
+                                            </div>
 
-                            <!-- Agama -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <Select
-                                        fluid
-                                        v-model="formWarga.agama"
-                                        :options="optionsAgama"
-                                        optionValue="value"
-                                        optionLabel="label"
-                                        :invalid="!!formWarga.errors.agama"
-                                    />
-                                    <label>Agama</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.agama"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.agama }}
-                                </Message>
-                            </div>
-
-                            <!-- Jenis Kelamin -->
-                            <div>
-                                <FloatLabel variant="on">
-                                    <Select
-                                        fluid
-                                        v-model="formWarga.jenis_kelamin"
-                                        :options="optionsJk"
-                                        optionValue="value"
-                                        optionLabel="label"
-                                        :invalid="
-                                            !!formWarga.errors.jenis_kelamin
-                                        "
-                                    />
-                                    <label>Jenis Kelamin</label>
-                                </FloatLabel>
-                                <Message
-                                    v-if="formWarga.errors.jenis_kelamin"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{ formWarga.errors.jenis_kelamin }}
-                                </Message>
-                            </div>
-
-                            <!-- Kriteria -->
-                            <div v-for="item in kriteria" :key="item.id">
-                                <FloatLabel variant="on">
-                                    <Select
-                                        fluid
-                                        v-if="getSubkriteria(item.id).length"
-                                        v-model="
-                                            formWarga.kriteria_values[
-                                                item.nama_kriteria
-                                            ]
-                                        "
-                                        :invalid="
-                                            !!formWarga.errors[
-                                                `kriteria_values.${item.nama_kriteria}`
-                                            ]
-                                        "
-                                        :options="getSubkriteria(item.id)"
-                                        optionLabel="nama_subkriteria_formatted"
-                                        optionValue="nama_subkriteria"
-                                    />
-                                    <label
-                                        v-if="getSubkriteria(item.id).length"
+                                            <!-- Jenis Kelamin -->
+                                            <div class="mb-4">
+                                                <FloatLabel variant="on">
+                                                    <Select
+                                                        fluid
+                                                        v-model="
+                                                            formWarga.jenis_kelamin
+                                                        "
+                                                        :options="optionsJk"
+                                                        optionValue="value"
+                                                        optionLabel="label"
+                                                        :invalid="
+                                                            !!formWarga.errors
+                                                                .jenis_kelamin
+                                                        "
+                                                    />
+                                                    <label>Jenis Kelamin</label>
+                                                </FloatLabel>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors
+                                                            .jenis_kelamin
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors
+                                                            .jenis_kelamin
+                                                    }}
+                                                </Message>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="py-6">
+                                        <Button
+                                            label="Next"
+                                            @click="activateCallback('2')"
+                                        />
+                                    </div>
+                                </StepPanel>
+                            </StepItem>
+                            <StepItem value="2">
+                                <Step>Kondisi Bangunan</Step>
+                                <StepPanel v-slot="{ activateCallback }">
+                                    <div class="flex flex-col">
+                                        <div
+                                            class="p-4 grid gap-4 mt-2 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 font-medium"
+                                        >
+                                            <!-- Kriteria -->
+                                            <div
+                                                v-for="item in kriteria"
+                                                :key="item.id"
+                                                class="mb-4"
+                                            >
+                                                <div
+                                                    v-if="
+                                                        getSubkriteria(item.id)
+                                                            .length
+                                                    "
+                                                >
+                                                    <label
+                                                        class="block font-semibold mb-2"
+                                                    >
+                                                        {{
+                                                            formatName(
+                                                                item.nama_kriteria
+                                                            )
+                                                        }}
+                                                    </label>
+                                                    <div
+                                                        class="flex flex-col gap-4"
+                                                    >
+                                                        <div
+                                                            v-for="sub in getSubkriteria(
+                                                                item.id
+                                                            )"
+                                                            :key="sub.id"
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                            <div
+                                                                class="relative flex items-center cursor-pointer"
+                                                                @click="
+                                                                    formWarga.kriteria_values[
+                                                                        item.nama_kriteria
+                                                                    ] =
+                                                                        sub.nama_subkriteria
+                                                                "
+                                                            >
+                                                                <input
+                                                                    :id="`radio_${item.id}_${sub.id}`"
+                                                                    type="radio"
+                                                                    :value="
+                                                                        sub.nama_subkriteria
+                                                                    "
+                                                                    v-model="
+                                                                        formWarga
+                                                                            .kriteria_values[
+                                                                            item
+                                                                                .nama_kriteria
+                                                                        ]
+                                                                    "
+                                                                    class="hidden"
+                                                                />
+                                                                <div
+                                                                    class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
+                                                                    :class="{
+                                                                        'border-blue-500 bg-blue-500':
+                                                                            formWarga
+                                                                                .kriteria_values[
+                                                                                item
+                                                                                    .nama_kriteria
+                                                                            ] ===
+                                                                            sub.nama_subkriteria,
+                                                                        'border-gray-300 dark:border-gray-600 bg-transparent':
+                                                                            formWarga
+                                                                                .kriteria_values[
+                                                                                item
+                                                                                    .nama_kriteria
+                                                                            ] !==
+                                                                            sub.nama_subkriteria,
+                                                                    }"
+                                                                >
+                                                                    <span
+                                                                        v-if="
+                                                                            formWarga
+                                                                                .kriteria_values[
+                                                                                item
+                                                                                    .nama_kriteria
+                                                                            ] ===
+                                                                            sub.nama_subkriteria
+                                                                        "
+                                                                        class="text-white text-sm font-bold"
+                                                                    >
+                                                                        ✔
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <label
+                                                                :for="`radio_${item.id}_${sub.id}`"
+                                                                class="cursor-pointer"
+                                                            >
+                                                                {{
+                                                                    sub.nama_subkriteria_formatted
+                                                                }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <Message
+                                                    v-if="
+                                                        formWarga.errors[
+                                                            `kriteria_values.${item.nama_kriteria}`
+                                                        ]
+                                                    "
+                                                    severity="error"
+                                                    size="small"
+                                                    variant="simple"
+                                                >
+                                                    {{
+                                                        formWarga.errors[
+                                                            `kriteria_values.${item.nama_kriteria}`
+                                                        ]
+                                                    }}
+                                                </Message>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="flex justify-between items-center py-6 gap-2"
                                     >
-                                        {{ formatName(item.nama_kriteria) }}
-                                    </label>
-                                </FloatLabel>
-
-                                <Message
-                                    v-if="
-                                        formWarga.errors[
-                                            `kriteria_values.${item.nama_kriteria}`
-                                        ]
-                                    "
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    {{
-                                        formWarga.errors[
-                                            `kriteria_values.${item.nama_kriteria}`
-                                        ]
-                                    }}
-                                </Message>
-                            </div>
-                        </div>
-
-                        <!-- Tombol Simpan dan Batal -->
-                        <div class="flex justify-end space-x-2 mt-4">
-                            <Button
-                                label="Simpan"
-                                type="submit"
-                                icon="pi pi-check"
-                            />
-                            <Button
-                                label="Batal"
-                                icon="pi pi-times"
-                                severity="secondary"
-                                @click="showForm = false"
-                                type="button"
-                            />
-                        </div>
+                                        <div>
+                                            <Button
+                                                icon="pi pi-arrow-left"
+                                                label="Back"
+                                                severity="secondary"
+                                                @click="activateCallback('1')"
+                                            />
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <Button
+                                                label="Simpan"
+                                                type="submit"
+                                                icon="pi pi-check"
+                                            />
+                                            <Button
+                                                label="Batal"
+                                                icon="pi pi-times"
+                                                severity="secondary"
+                                                @click="showForm = false"
+                                                type="button"
+                                            />
+                                        </div>
+                                    </div>
+                                </StepPanel>
+                            </StepItem>
+                        </Stepper>
                     </form>
                 </Dialog>
 
@@ -864,14 +1058,14 @@ const exportCSV = () => {
                             class="me-5"
                         />
 
-                        <Button
+                        <!-- <Button
                             v-if="pageProps.auth.user.role === 'perangkat'"
                             label="import CSV"
                             size="small"
                             severity="success"
                             icon="pi pi-file-excel"
                             @click="importCSV"
-                        />
+                        /> -->
                     </div>
 
                     <div class="flex w-[30%] items-center">
@@ -966,7 +1160,7 @@ const exportCSV = () => {
                                 header="Periode"
                             >
                                 <template #body="{ data }">
-                                    {{ formatName(data.tahun) }}
+                                    {{ formatCell(data.tahun) }}
                                 </template>
                             </Column>
                             <Column
@@ -976,13 +1170,13 @@ const exportCSV = () => {
                                 header="Nama Warga"
                             >
                                 <template #body="{ data }">
-                                    {{ formatName(data.nama_kk) }}
+                                    {{ formatCell(data.nama_kk) }}
                                 </template>
                             </Column>
                             <Column field="nomor_kk" header="Nomor KK" />
                             <Column sortable field="provinsi" header="Provinsi">
                                 <template #body="{ data }">
-                                    {{ formatName(data.provinsi) }}
+                                    {{ formatCell(data.provinsi) }}
                                 </template>
                             </Column>
                             <Column
@@ -991,12 +1185,12 @@ const exportCSV = () => {
                                 header="Kabupaten"
                             >
                                 <template #body="{ data }">
-                                    {{ formatName(data.kabupaten) }}
+                                    {{ formatCell(data.kabupaten) }}
                                 </template>
                             </Column>
                             <Column sortable field="kampung" header="Kampung">
                                 <template #body="{ data }">
-                                    {{ formatName(data.kampung) }}
+                                    {{ formatCell(data.kampung) }}
                                 </template>
                             </Column>
                             <Column
@@ -1005,12 +1199,12 @@ const exportCSV = () => {
                                 header="Asal Suku"
                             >
                                 <template #body="{ data }">
-                                    {{ formatName(data.asal_suku) }}
+                                    {{ formatCell(data.asal_suku) }}
                                 </template>
                             </Column>
                             <Column sortable field="agama" header="Agama">
                                 <template #body="{ data }">
-                                    {{ formatName(data.agama) }}
+                                    {{ formatCell(data.agama) }}
                                 </template>
                             </Column>
                             <Column
@@ -1019,31 +1213,21 @@ const exportCSV = () => {
                                 header="Jenis Kelamin"
                             >
                                 <template #body="{ data }">
-                                    {{ formatName(data.jenis_kelamin) }}
+                                    {{ formatCell(data.jenis_kelamin) }}
                                 </template>
                             </Column>
                             <Column sortable field="rt" header="RT">
                                 <template #body="{ data }">
-                                    {{ formatName(data.rt) }}
+                                    {{ formatCell(data.rt) }}
                                 </template>
                             </Column>
                             <Column sortable field="rw" header="RW">
                                 <template #body="{ data }">
-                                    {{ formatName(data.rw) }}
-                                </template>
-                            </Column>
-                            <Column
-                                sortable
-                                field="pekerjaan"
-                                header="Pekerjaan"
-                            >
-                                <template #body="{ data }">
-                                    {{ formatName(data.pekerjaan) }}
+                                    {{ formatCell(data.rw) }}
                                 </template>
                             </Column>
 
                             <!-- Render kolom -->
-                            <!-- Header dan Field -->
                             <template
                                 v-for="col in tableColumns"
                                 :key="col.field"

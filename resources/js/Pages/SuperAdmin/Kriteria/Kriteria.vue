@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch, computed } from "vue";
 import { Head, router, useForm } from "@inertiajs/vue3";
 // import layout
 import Layout from "@/Layouts/TemplateLayout.vue";
@@ -21,15 +21,32 @@ import {
 
 onMounted(() => {
     checkNotif();
+
+    formattedOptions.value = props.dataKriteria.map((option) => ({
+        id: option.id,
+        label: formatNameSub(option.nama_kriteria),
+        ...option,
+    }));
 });
+
+// Fungsi untuk memformat nama kolom
+const formatNameSub = (columnName) => {
+    return columnName
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+};
+
+const formattedOptions = ref([]);
 
 const props = defineProps({
     dataKriteria: Object,
     dataSubKriteria: Object,
+    Aktif: Object,
+    Taktif: Object,
     flash: Object,
     auth: Object,
 });
-
 
 const toast = useToast();
 
@@ -79,11 +96,15 @@ const tambahData = () => {
 };
 
 let tipe = [{ nama: "Cost" }, { nama: "Benefit" }];
+let status = [{ nama: "Aktif" }, { nama: "Tidak" }];
+let keterangan = [{ nama: "Penting" }, { nama: "Tidak" }];
 
 const kriteriaForm = useForm({
     nama: "",
     nilai_bobot: null,
     tipe: null,
+    status: null,
+    keterangan: null,
 });
 
 const subKriteriaForm = useForm({
@@ -91,6 +112,17 @@ const subKriteriaForm = useForm({
     nilai_bobot: null,
     id_relasi: null,
 });
+
+watch(
+    () => kriteriaForm.status,
+    (newValue) => {
+        if (newValue === "Tidak") {
+            kriteriaForm.nilai_bobot = null; 
+            kriteriaForm.tipe = null; 
+            kriteriaForm.keterangan = null; 
+        }
+    }
+);
 
 const tambahKriteria = () => {
     showKriteriaForm.value = false;
@@ -208,6 +240,29 @@ const errorToast = (errorMessage) => {
                             </Message>
                         </div>
 
+                        <div>
+                            <FloatLabel variant="on">
+                                <Select
+                                    id="tipe"
+                                    v-model="kriteriaForm.status"
+                                    :options="status"
+                                    optionLabel="nama"
+                                    optionValue="nama"
+                                    fluid
+                                    :invalid="!!kriteriaForm.errors.status"
+                                />
+                                <label for="type">Status</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="kriteriaForm.errors.status"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
+                                {{ kriteriaForm.errors.status }}
+                            </Message>
+                        </div>
+
                         <!-- Nilai Bobot -->
                         <div class="w-full">
                             <FloatLabel variant="on">
@@ -219,6 +274,7 @@ const errorToast = (errorMessage) => {
                                     showButtons
                                     :min="0"
                                     :max="100"
+                                    :disabled="kriteriaForm.status === 'Tidak'"
                                     :invalid="!!kriteriaForm.errors.nilai_bobot"
                                 />
                                 <label for="nilai">Nilai Bobot (%)</label>
@@ -244,6 +300,7 @@ const errorToast = (errorMessage) => {
                                     optionLabel="nama"
                                     optionValue="nama"
                                     :invalid="!!kriteriaForm.errors.tipe"
+                                    :disabled="kriteriaForm.status === 'Tidak'"
                                 />
                                 <label for="tipe">Type</label>
                             </FloatLabel>
@@ -254,6 +311,30 @@ const errorToast = (errorMessage) => {
                                 variant="simple"
                             >
                                 {{ kriteriaForm.errors.tipe }}
+                            </Message>
+                        </div>
+
+                        <div>
+                            <FloatLabel variant="on">
+                                <Select
+                                    id="tipe"
+                                    v-model="kriteriaForm.keterangan"
+                                    :options="keterangan"
+                                    optionLabel="nama"
+                                    optionValue="nama"
+                                    fluid
+                                    :disabled="kriteriaForm.status === 'Tidak'"
+                                    :invalid="!!kriteriaForm.errors.keterangan"
+                                />
+                                <label for="type">Keterangan</label>
+                            </FloatLabel>
+                            <Message
+                                v-if="kriteriaForm.errors.keterangan"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                            >
+                                {{ kriteriaForm.errors.keterangan }}
                             </Message>
                         </div>
 
@@ -320,12 +401,12 @@ const errorToast = (errorMessage) => {
                                     mode="decimal"
                                     showButtons
                                     :min="0"
-                                    :max="100"
+                                    :max="5"
                                     :invalid="
                                         !!subKriteriaForm.errors.nilai_bobot
                                     "
                                 />
-                                <label for="nilai">Nilai Bobot (%)</label>
+                                <label for="nilai">Nilai Bobot</label>
                             </FloatLabel>
                             <Message
                                 v-if="subKriteriaForm.errors.nilai_bobot"
@@ -343,14 +424,14 @@ const errorToast = (errorMessage) => {
                                 <Select
                                     fluid
                                     v-model="subKriteriaForm.id_relasi"
-                                    :options="props.dataKriteria"
-                                    optionLabel="kode_kriteria"
+                                    :options="formattedOptions"
+                                    optionLabel="label"
                                     optionValue="id"
                                     :invalid="
                                         !!subKriteriaForm.errors.id_relasi
                                     "
                                 />
-                                <label for="id_relasi">ID Kriteria</label>
+                                <label for="id_relasi">Kode Kriteria</label>
                             </FloatLabel>
                             <Message
                                 v-if="subKriteriaForm.errors.id_relasi"
@@ -382,6 +463,8 @@ const errorToast = (errorMessage) => {
                 <kriteriaComp
                     v-if="is_kriteria"
                     :dataKriteria="props.dataKriteria"
+                    :Aktif="props.Aktif"
+                    :Taktif="props.Taktif"
                     @refresh-page="refreshPage()"
                 />
                 <subKriteriaComp

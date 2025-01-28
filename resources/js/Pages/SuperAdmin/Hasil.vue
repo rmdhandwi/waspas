@@ -346,7 +346,6 @@ const formatName = (columnName) => {
                             header="Hasil Akhir"
                             field="skor_akhir"
                         />
-                        <Column sortable header="Rank" field="peringkat" />
                     </DataTable>
                 </template>
             </Card>

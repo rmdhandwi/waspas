@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useForm } from "@inertiajs/vue3";
 import { FilterMatchMode } from "@primevue/core/api";
 
@@ -21,13 +21,37 @@ import {
     Message,
 } from "primevue";
 
-const props = defineProps({ dataKriteria: Object, dataSubKriteria: Object });
+const props = defineProps({
+    dataKriteria: Object,
+    dataSubKriteria: Object,
+});
+
+const formattedOptions = ref([]);
+let dt = ref();
+let dataSubKriteriaFix = ref([]);
+const confirm = useConfirm();
+const showUbahData = ref(false);
+
+// Fungsi untuk memformat nama kolom
+const formatNameSub = (columnName) => {
+    return columnName
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+};
 
 onMounted(() => {
     dataSubKriteriaFix.value = props.dataSubKriteria.map((p, i) => ({
         index: i + 1,
+        nama_kriteria: formatNameSub(p.kriteria.nama_kriteria),
         nama_sub_kriteria: formatNameSub(p.nama_subkriteria),
         ...p,
+    }));
+
+    formattedOptions.value = props.dataKriteria.map((option) => ({
+        id: option.id,
+        label: formatNameSub(option.nama_kriteria),
+        ...option,
     }));
 });
 
@@ -41,13 +65,7 @@ const exportCSV = () => {
     dt.value.exportCSV();
 };
 
-let dt = ref();
 
-let dataSubKriteriaFix = ref([]);
-
-const confirm = useConfirm();
-
-const showUbahData = ref(false);
 
 let hapusForm = useForm({
     id: null,
@@ -60,13 +78,7 @@ let ubahForm = useForm({
     id_relasi: null,
 });
 
-// Fungsi untuk memformat nama kolom
-const formatNameSub = (columnName) => {
-    return columnName
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-};
+
 
 const lihatData = (index) => {
     ubahForm.clearErrors();
@@ -204,12 +216,12 @@ const hapusData = (id, kode) => {
                     <Select
                         fluid
                         v-model="ubahForm.id_relasi"
-                        :options="props.dataKriteria"
-                        optionLabel="kode_kriteria"
+                        :options="formattedOptions"
+                        optionLabel="label"
                         optionValue="id"
                         :invalid="!!ubahForm.errors.id_relasi"
                     />
-                    <label for="id_relasi">ID Kriteria</label>
+                    <label for="id_relasi">Kode Kriteria</label>
                 </FloatLabel>
                 <Message
                     v-if="ubahForm.errors.id_relasi"
@@ -256,13 +268,13 @@ const hapusData = (id, kode) => {
                 :rows="10"
             >
                 <template #header>
-                    <div class="flex items-center justify-between">
-                        <Button
+                    <div class="flex items-center justify-end">
+                        <!-- <Button
                             icon="pi pi-external-link"
                             label="Export"
                             @click="exportCSV($event)"
                             size="small"
-                        />
+                        /> -->
                         <IconField>
                             <InputIcon>
                                 <i class="pi pi-search me-4" />
@@ -280,7 +292,6 @@ const hapusData = (id, kode) => {
                     >
                 </template>
                 <Column sortable field="index" header="No" />
-                <Column sortable field="kode_sub" header="Kode Sub" />
                 <Column
                     sortable
                     field="nama_sub_kriteria"
@@ -289,8 +300,8 @@ const hapusData = (id, kode) => {
                 <Column sortable field="nilai" header="Nilai Bobot" />
                 <Column
                     sortable
-                    field="kriteria.kode_kriteria"
-                    header="Kode Kriteria"
+                    field="nama_kriteria"
+                    header="Kriteria"
                 />
                 <Column header="Opsi">
                     <template #body="{ data }">

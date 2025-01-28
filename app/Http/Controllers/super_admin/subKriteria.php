@@ -29,7 +29,6 @@ class subKriteria extends Controller
             'nama_subkriteria' => $namaSubKriteriaFormat,
             'nilai' => $req->nilai_bobot,
             'kriteria_id' => $req->id_relasi,
-            'created_at' => Carbon::now('Asia/Jayapura')
         ]);
 
         if ($insert) {

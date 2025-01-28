@@ -43,7 +43,6 @@ class user extends Controller
             'username' => $req->username,
             'password' => Hash::make($req->password),
             'role' => $req->role,
-            'created_at' => Carbon::now('Asia/Jayapura')
         ]);
 
         if ($insert) {
@@ -78,7 +77,6 @@ class user extends Controller
             'username' => $req->username,
             'password' => Hash::make($req->password),
             'role' => 'warga',
-            'created_at' => Carbon::now('Asia/Jayapura')
         ]);
 
         if ($insert) {
@@ -155,7 +153,7 @@ class user extends Controller
         $user->save();
 
         // Logout jika pengguna yang diubah adalah pengguna yang sedang login dan ada perubahan
-        if (auth()->user()->id == $id && $hasChanges) {
+        if (Auth::user()->id == $id && $hasChanges) {
             Auth::logout();
 
             $req->session()->invalidate();  // Menghancurkan session
@@ -177,7 +175,7 @@ class user extends Controller
     public function hapusPengguna($id)
     {
 
-        if (auth()->user()->id == $id) {
+        if (Auth::user()->id == $id) {
             return back()->with([
                 'notif_status' => 'failed',
                 'notif_message' => 'Tidak dapat menghapus pengguna yang sedang login',

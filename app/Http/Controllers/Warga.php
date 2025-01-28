@@ -44,7 +44,6 @@ class Warga extends Controller
                 'kampung' => 'required',
                 'rt' => 'required|numeric',
                 'rw' => 'required|numeric',
-                'pekerjaan' => 'required',
                 'agama' => 'required',
                 'jenis_kelamin' => 'required',
                 'asal_suku' => 'required',
@@ -72,7 +71,6 @@ class Warga extends Controller
 
         // Mengubah nama kriteria menjadi huruf kecil dan mengganti spasi dengan garis bawah
         $namaKriteriaFormat = strtolower(str_replace(' ', '_', $request->nama_kk));
-        $pekerjaanFormat = strtolower(str_replace(' ', '_', $request->pekerjaan));
         $asalsukuFormat = strtolower(str_replace(' ', '_', $request->asal_suku));
 
         // Ambil data warga dari request
@@ -85,12 +83,10 @@ class Warga extends Controller
             'kampung' => $request->kampung,
             'rt' => $request->rt,
             'rw' => $request->rw,
-            'pekerjaan' => $pekerjaanFormat,
             'agama' => $request->agama,
             'jenis_kelamin' => $request->jenis_kelamin,
             'asal_suku' => $asalsukuFormat,
             'status' => 0,
-            'created_at' => Carbon::now('Asia/Jayapura'),
         ];
 
         // Menyimpan data warga (tabel warga)
@@ -130,7 +126,6 @@ class Warga extends Controller
                 'kampung' => 'required',
                 'rt' => 'required|numeric',
                 'rw' => 'required|numeric',
-                'pekerjaan' => 'required',
                 'agama' => 'required',
                 'jenis_kelamin' => 'required',
                 'asal_suku' => 'required',
@@ -145,7 +140,6 @@ class Warga extends Controller
         );
 
         $namaKriteriaFormat = strtolower(str_replace(' ', '_', $request->nama_kk));
-        $pekerjaanFormat = strtolower(str_replace(' ', '_', $request->pekerjaan));
         $asalsukuFormat = strtolower(str_replace(' ', '_', $request->asal_suku));
         // Ambil data warga dari request
         $warga = ModelsWarga::findOrFail($id); // Temukan warga berdasarkan ID
@@ -159,12 +153,10 @@ class Warga extends Controller
             'kampung' => $request->kampung,
             'rt' => $request->rt,
             'rw' => $request->rw,
-            'pekerjaan' => $pekerjaanFormat,
             'agama' => $request->agama,
             'jenis_kelamin' => $request->jenis_kelamin,
             'asal_suku' => $asalsukuFormat,
             'status' => 0,
-            'updated_at' => Carbon::now('Asia/Jayapura'), // Update timestamp
         ];
 
         // Memperbarui data warga (tabel warga)
@@ -206,106 +198,6 @@ class Warga extends Controller
         }
     }
 
-    // public function upload(Request $request)
-    // {
-    //     // Validasi file yang diunggah
-    //     $request->validate([
-    //         'file' => 'required|mimes:csv,txt'
-    //     ], [
-    //         'file.required' => 'File harus diunggah.',
-    //         'file.mimes' => 'Hanya file CSV yang diperbolehkan.'
-    //     ]);
-
-    //     // Proses unggahan file dan penyimpanan data ke database
-    //     try {
-    //         $file = $request->file('file');
-    //         $csvData = array_map('str_getcsv', file($file));
-
-    //         // Lewati baris pertama jika itu adalah header
-    //         $header = array_shift($csvData);
-
-    //         // Array untuk menyimpan nomor KK yang sudah diproses
-    //         $processedNomorKk = [];
-
-    //         foreach ($csvData as $row) {
-    //             $nomorKk = $row[1];
-    //             $tahunId = $row[0]; // Tahun dari CSV (row[0])
-    //             $status = $row[11]; // Tahun dari CSV (row[11])
-
-    //             // Cek apakah nomor KK, dengan peeriode yang sama dan statusnya tidak 1 (untuk cek duplikasi dalam file)
-    //             if (in_array($nomorKk, $processedNomorKk)) {
-    //                 return redirect()->back()->with([
-    //                     'notif_status' => 'error',
-    //                     'notif_message' => 'Nomor KK ' . $nomorKk . ' duplikat dalam file CSV!'
-    //                 ]);
-    //             }
-
-    //             // Cek apakah nomor KK sudah ada di database
-    //             $existingData = ModelsWarga::where('nomor_kk', $nomorKk)->first();
-
-    //             if ($existingData) {
-    //                 return redirect()->back()->with([
-    //                     'notif_status' => 'error',
-    //                     'notif_message' => 'Nomor KK ' . $nomorKk . ' sudah terdaftar! dengan nama: ' . $existingData->nama_kk
-    //                 ]);
-    //             }
-
-    //             // Cek apakah tahun_id ada di tabel periode
-    //             $periode = periode::where('tahun', $tahunId)->first(); // Pastikan `Period` adalah model untuk tabel periode
-
-    //             if (!$periode) {
-    //                 return redirect()->back()->with([
-    //                     'notif_status' => 'error',
-    //                     'notif_message' => 'Tahun ID ' . $tahunId . ' tidak ditemukan di tabel periode!'
-    //                 ]);
-    //             }
-
-    //             // Gunakan id dari periode yang ditemukan
-    //             $periodeId = $periode->id;
-
-    //             // Pemetaan kolom CSV ke kolom database
-    //             ModelsWarga::create([
-    //                 'tahun_id' => $periodeId, // Gunakan id periode
-    //                 'nomor_kk' => $nomorKk,
-    //                 'nama_kk' => strtolower(str_replace(' ', '_', $row[2])),
-    //                 'provinsi' => strtolower(str_replace(' ', '_', $row[3])),
-    //                 'kabupaten' => strtolower(str_replace(' ', '_', $row[4])),
-    //                 'kampung' => strtolower(str_replace(' ', '_', $row[5])),
-    //                 'rt' => strtolower(str_replace(' ', '_', $row[6])),
-    //                 'rw' => strtolower(str_replace(' ', '_', $row[7])),
-    //                 'asal_suku' => strtolower(str_replace(' ', '_', $row[8])),
-    //                 'pekerjaan' => strtolower(str_replace(' ', '_', $row[9])),
-    //                 'agama' => strtolower(str_replace(' ', '_', $row[10])),
-    //                 'status' => $status,
-    //                 'jenis_kelamin' => strtolower(str_replace(' ', '_', $row[12])),
-    //                 'created_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
-    //                 'updated_at' => now(),  // Mengasumsikan Anda ingin mengatur timestamp saat ini
-    //                 'penghasilan' => strtolower(str_replace(' ', '_', $row[13])),
-    //                 'status_kepemilikan_rumah' => strtolower(str_replace(' ', '_', $row[14])),
-    //                 'struktur_bangunan_rumah' => strtolower(str_replace(' ', '_', $row[15])),
-    //                 'status_kepemilikan_lahan' => strtolower(str_replace(' ', '_', $row[16])),
-    //                 'status_legalitas_lahan' => strtolower(str_replace(' ', '_', $row[17])),
-    //                 'jumlah_penghuni' => strtolower(str_replace(' ', '_', $row[18])),
-    //                 'kepemilikan_sanitasi' => strtolower(str_replace(' ', '_', $row[19])),
-    //                 'tempat_pembuangan_tinja' => strtolower(str_replace(' ', '_', $row[20])),
-    //             ]);
-
-    //             // Tambahkan nomor KK yang telah diproses ke dalam array
-    //             $processedNomorKk[] = $nomorKk;
-    //         }
-
-    //         return redirect()->back()->with([
-    //             'notif_status' => 'success',
-    //             'notif_message' => 'File CSV berhasil diunggah dan data berhasil disimpan!'
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return redirect()->back()->with([
-    //             'notif_status' => 'error',
-    //             'notif_message' => 'Terjadi kesalahan saat memproses file: ' . $e->getMessage()
-    //         ]);
-    //     }
-    // }
-
 
     public function upload(Request $request)
     {
@@ -330,8 +222,8 @@ class Warga extends Controller
             $processedData = [];
 
             foreach ($csvData as $row) {
-                $tahunId = $row[0];  // Tahun dari CSV
-                $nomorKk = $row[1]; // Nomor KK
+                $tahunId = $row[1];  // Tahun ID dari CSV
+                $nomorKk = $row[2]; // Nomor KK
                 $status = $row[11]; // Status dari CSV
 
                 // Hitung data dengan status = 1 dari file CSV
@@ -375,27 +267,37 @@ class Warga extends Controller
                 ModelsWarga::create([
                     'tahun_id' => $periodeId,
                     'nomor_kk' => $nomorKk,
-                    'nama_kk' => strtolower(str_replace(' ', '_', $row[2])),
-                    'provinsi' => strtolower(str_replace(' ', '_', $row[3])),
-                    'kabupaten' => strtolower(str_replace(' ', '_', $row[4])),
-                    'kampung' => strtolower(str_replace(' ', '_', $row[5])),
-                    'rt' => strtolower(str_replace(' ', '_', $row[6])),
-                    'rw' => strtolower(str_replace(' ', '_', $row[7])),
-                    'asal_suku' => strtolower(str_replace(' ', '_', $row[8])),
-                    'pekerjaan' => strtolower(str_replace(' ', '_', $row[9])),
-                    'agama' => strtolower(str_replace(' ', '_', $row[10])),
+                    'nama_kk' => $row[3],
+                    'provinsi' => $row[4],
+                    'kabupaten' => $row[5],
+                    'kampung' => $row[6],
+                    'rt' => $row[7],
+                    'rw' => $row[8],
+                    'asal_suku' => $row[9],
+                    'agama' => $row[10],
                     'status' => $status,
-                    'jenis_kelamin' => strtolower(str_replace(' ', '_', $row[12])),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                    'penghasilan' => strtolower(str_replace(' ', '_', $row[13])),
-                    'status_kepemilikan_rumah' => strtolower(str_replace(' ', '_', $row[14])),
-                    'struktur_bangunan_rumah' => strtolower(str_replace(' ', '_', $row[15])),
-                    'status_kepemilikan_lahan' => strtolower(str_replace(' ', '_', $row[16])),
-                    'status_legalitas_lahan' => strtolower(str_replace(' ', '_', $row[17])),
-                    'jumlah_penghuni' => strtolower(str_replace(' ', '_', $row[18])),
-                    'kepemilikan_sanitasi' => strtolower(str_replace(' ', '_', $row[19])),
-                    'tempat_pembuangan_tinja' => strtolower(str_replace(' ', '_', $row[20])),
+                    'jenis_kelamin' => $row[12],
+                    'penghasilan_perbulan' => $row[13] ?? null,
+                    'status_kepemilikan_rumah' => $row[14] ?? null,
+                    'struktur_bangunan_rumah' => $row[15] ?? null,
+                    'status_kepemilikan_lahan' => $row[16] ?? null,
+                    'status_legalitas_lahan' => $row[17] ?? null,
+                    'jumlah_penghuni' => $row[18] ?? null,
+                    'kepemilikan_sanitasi' => $row[19] ?? null,
+                    'tempat_pembuangan_tinja' => $row[20] ?? null,
+                    'bangunan_diatas_lahan_sempadan_sungai_atau_kali' => $row[21] ?? null,
+                    'bangunan_berada_di_daerah_buangan_limbah_pabrik_atau_sutet' => $row[22] ?? null,
+                    'luas_lantai_bangunan_rumah/jiwa' => $row[23] ?? null,
+                    'kondisi_atap_terluas' => $row[24] ?? null,
+                    'kondisi_dinding_terluas' => $row[25] ?? null,
+                    'jenis_lantai_terluas' => $row[26] ?? null,
+                    'sumber_air_minum,_mandi,_dan_cuci' => $row[27] ?? null,
+                    'jarak_sumber_air_dengan_penampungan_tinja_terdekat' => $row[28] ?? null,
+                    'kecukupan_air_minum,_mandi,_dan_cuci_tahunan' => $row[29] ?? null,
+                    'jenis_kloset' => $row[30] ?? null,
+                    'tempat_pembuangan_sampah' => $row[31] ?? null,
+                    'jumlah_pengangkutan_sampah' => $row[32] ?? null,
+                    'mata_pencaharian_kepala_keluarga' => $row[33] ?? null
                 ]);
 
                 // Tandai kombinasi ini sudah diproses
@@ -404,7 +306,7 @@ class Warga extends Controller
 
             return redirect()->back()->with([
                 'notif_status' => 'success',
-                'notif_message' => "File CSV berhasil diunggah.\nJumlah data yang dengan status = 1: {$statusOneCountCsv}.\Sudah Pernah  Menerima: {$conflictCount}."
+                'notif_message' => "File CSV berhasil diunggah.\nJumlah data dengan status = 1: {$statusOneCountCsv}.\nSudah Pernah Menerima: {$conflictCount}."
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with([
@@ -413,4 +315,5 @@ class Warga extends Controller
             ]);
         }
     }
+
 }
