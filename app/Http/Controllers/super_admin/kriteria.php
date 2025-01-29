@@ -49,13 +49,11 @@ class kriteria extends Controller
             $request->validate([
                 'nilai_bobot' => 'required|numeric|min:0|max:100',
                 'tipe' => 'required|in:Benefit,Cost',
-                'keterangan' => 'required|in:Penting,Tidak',
             ], [
                 'nilai_bobot.required' => 'Bobot harus diisi untuk kriteria aktif',
                 'nilai_bobot.numeric' => 'Bobot harus berupa angka',
                 'tipe.required' => 'Tipe harus diisi untuk kriteria aktif',
                 'tipe.in' => 'Hanya boleh terisi Benefit atau Cost',
-                'keterangan.in' => 'Hanya boleh terisi Penting atau Tidak',
             ]);
 
             // Menghitung total bobot saat ini
@@ -84,7 +82,6 @@ class kriteria extends Controller
             'bobot' => $request->status === 'Aktif' ? $request->nilai_bobot : null, // Set bobot ke null jika status Tidak
             'tipe' => $request->status === 'Aktif' ? $request->tipe : null,        // Set tipe ke null jika status Tidak
             'status' => $request->status,
-            'keterangan' => $request->status === 'Aktif' ? $request->keterangan : "Tidak"
         ]);
 
         // Jika penyimpanan berhasil, tambahkan kolom ke tabel 'warga'
@@ -153,7 +150,6 @@ class kriteria extends Controller
                 [
                     'nilai_bobot' => 'required|numeric|min:0|max:100',
                     'tipe' => 'required|in:Benefit,Cost',
-                    'keterangan' => 'required|in:Penting,Tidak',
                 ],
                 [
                     'nilai_bobot.required' => 'Bobot harus diisi untuk kriteria aktif',
@@ -162,7 +158,7 @@ class kriteria extends Controller
                     'nilai_bobot.max' => 'Bobot tidak boleh lebih dari 100%',
                     'tipe.required' => 'Tipe harus diisi untuk kriteria aktif',
                     'tipe.in' => 'Hanya boleh terisi Benefit atau Cost',
-                    'keterangan.in' => 'Hanya boleh terisi Penting atau Tidak',
+    
                 ]
             );
 
@@ -238,7 +234,6 @@ class kriteria extends Controller
             'bobot' => $req->status === 'Aktif' ? $req->nilai_bobot : null,
             'tipe' => $req->status === 'Aktif' ? $req->tipe : null,
             'status' => $req->status,
-            'keterangan' => $req->status === 'Aktif' ? $req->keterangan : "Tidak",
         ];
 
         // Lakukan update data

@@ -18,7 +18,6 @@ class Kriteria extends Model
         'bobot',
         'tipe',
         'status',
-        'keterangan',
     ];
 
     public function subkriteria()

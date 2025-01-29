@@ -314,30 +314,6 @@ const errorToast = (errorMessage) => {
                             </Message>
                         </div>
 
-                        <div>
-                            <FloatLabel variant="on">
-                                <Select
-                                    id="tipe"
-                                    v-model="kriteriaForm.keterangan"
-                                    :options="keterangan"
-                                    optionLabel="nama"
-                                    optionValue="nama"
-                                    fluid
-                                    :disabled="kriteriaForm.status === 'Tidak'"
-                                    :invalid="!!kriteriaForm.errors.keterangan"
-                                />
-                                <label for="type">Keterangan</label>
-                            </FloatLabel>
-                            <Message
-                                v-if="kriteriaForm.errors.keterangan"
-                                severity="error"
-                                size="small"
-                                variant="simple"
-                            >
-                                {{ kriteriaForm.errors.keterangan }}
-                            </Message>
-                        </div>
-
                         <!-- Tombol Aksi -->
                         <div class="flex justify-end gap-2 w-full mt-4">
                             <Button

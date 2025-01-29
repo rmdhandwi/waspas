@@ -527,29 +527,29 @@ class seleksi extends Controller
                 ) {
                     $keterangan = [];
 
+                    // Loop untuk setiap kriteria untuk mengambil nilai yang sesuai
                     foreach ($kriteria as $criteria) {
                         $namaKriteria = $criteria->nama_kriteria;
 
                         // Ambil nilai langsung dari model Warga berdasarkan nama kriteria
                         $altValue = Warga::find($alt['id'])->{$namaKriteria} ?? null;
-                        $compAltValue = Warga::find($compAlt['id'])->{$namaKriteria} ?? null;
 
-                        // Cocokkan nilai
-                        if ($altValue === $compAltValue) {
-                            $keterangan[] = "$altValue";
-                        }
+                        // Simpan keterangan dengan format "Nama Kriteria: Nilai"
+                        $keterangan[] = "$namaKriteria: $altValue";
                     }
 
+                    // Jika ada nilai yang diambil, tampilkan
                     if (!empty($keterangan)) {
+                        // Gabungkan keterangan menggunakan koma sebagai pemisah
                         $alt['keterangan'] = implode(', ', $keterangan);
-                        $compAlt['keterangan'] = implode(', ', $keterangan);
                     } else {
-                        $alt['keterangan'] = 'Tidak ada nilai yang sama.';
-                        $compAlt['keterangan'] = 'Tidak ada nilai yang sama.';
+                        // Jika tidak ada nilai yang diambil
+                        $alt['keterangan'] = 'Tidak ada nilai yang tersedia.';
                     }
                 }
             }
         }
+
 
         // dd($filteredWarga);
 
