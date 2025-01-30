@@ -156,12 +156,23 @@ const formatName = (columnName) => {
         </Card>
 
         <!-- Menampilkan Pesan Jika Tidak Ada Data -->
-        <div v-if="!selectedPeriode || Object.keys(filteredDataByPeriode).length === 0" class="text-center text-red-600 font-semibold">
+        <div
+            v-if="
+                !selectedPeriode ||
+                Object.keys(filteredDataByPeriode).length === 0
+            "
+            class="text-center text-red-600 font-semibold"
+        >
             Belum ada data untuk periode yang dipilih.
         </div>
 
         <!-- Tabs untuk Menampilkan Data Berdasarkan Hitung -->
-        <Card v-if="selectedPeriode && Object.keys(filteredDataByPeriode).length > 0" class="mt-4">
+        <Card
+            v-if="
+                selectedPeriode && Object.keys(filteredDataByPeriode).length > 0
+            "
+            class="mt-4"
+        >
             <template #content>
                 <Tabs v-model="activeTab" class="w-full">
                     <!-- Daftar Tab -->
@@ -238,9 +249,23 @@ const formatName = (columnName) => {
 
                                     <template #empty>
                                         <div class="text-center text-gray-500">
-                                            Tidak ada data
+                                            Data Warga tidak Ditemukan
                                         </div>
                                     </template>
+                                    <!-- Kolom Nomor Urut -->
+                                    <Column
+                                        header="No"
+                                        :field="
+                                            group.indexOf(slotProps.data) + 1
+                                        "
+                                    >
+                                        <template #body="slotProps">
+                                            {{
+                                                group.indexOf(slotProps.data) +
+                                                1
+                                            }}
+                                        </template>
+                                    </Column>
                                     <Column
                                         field="warga.nama_kk"
                                         header="Nama Warga"

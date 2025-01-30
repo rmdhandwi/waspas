@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function(){
     Route::get('/logout', [Authentication::class, 'destroy'])->name('logout');
     Route::get('Warga', [Warga::class, 'wargaPage'])->name('wargapage');
     Route::get('Hasil Seleksi', [seleksi::class, 'hasilpage'])->name('hasil');
+    Route::post('Cetak Hasil', [seleksi::class, 'cetakPage'])->name('cetakPage');
 });
 
 Route::middleware(['auth', 'kepala'])->group(function(){
@@ -61,6 +62,4 @@ Route::middleware(['auth','perangkat'])->group(function () {
     Route::delete('DeleteWarga/{id}', [Warga::class, 'deleteWarga'])->name('DeleteWarga');
     
     Route::post('UpluadWarga', [Warga::class, 'upload'])->name('uploadCSV');
-
-    Route::post('Cetak Hasil', [seleksi::class, 'cetakPage'])->name('cetakPage');
 });

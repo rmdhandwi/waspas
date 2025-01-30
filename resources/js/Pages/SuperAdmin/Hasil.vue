@@ -171,7 +171,7 @@ const formatName = (columnName) => {
                             :style="{ width: '50vw' }"
                             :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
                         >
-                            <form @submit.prevent="cetak()">
+                            <form @submit.prevent="cetak">
                                 <div class="grid grid-cols-2 gap-4 mt-2">
                                     <div>
                                         <FloatLabel variant="on">
