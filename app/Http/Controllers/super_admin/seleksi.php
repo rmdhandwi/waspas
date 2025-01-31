@@ -215,7 +215,7 @@ class seleksi extends Controller
 
         // Setelah proses urutkan, kita tambahkan ranking dan keterangan berdasarkan kondisi
         foreach ($filteredWarga as $index => &$alt) {
-            $alt['ranking'] = $index + 1;
+            $alt['  '] = $index + 1;
 
             // Pengecekan penghasilan_perbulan dan status_legalitas_lahan
             $penghasilanPerbulan = $alt['data']['penghasilan_perbulan'] ?? null;
