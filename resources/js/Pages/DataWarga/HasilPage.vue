@@ -256,7 +256,7 @@ const formatName = (columnName) => {
                                     <Column
                                         header="No"
                                         :field="
-                                            group.indexOf(slotProps.data) + 1
+                                            group + 1
                                         "
                                     >
                                         <template #body="slotProps">
